@@ -1,8 +1,8 @@
 CC = gcc -g -lm
-FILES = main.c variousMethods.c index.c invertedIndex.c searchQuery.c tfQuery.c dfQuery.c generalInfo.c
-OBJECTS = main.o variousMethods.o index.o invertedIndex.o searchQuery.o tfQuery.o dfQuery.o generalInfo.o
-OUT = minisearch
-HEADERS = variousMethods.h index.h invertedIndex.h searchQuery.h tfQuery.h dfQuery.h generalInfo.h
+FILES = main.c variousMethods.c index.c invertedIndex.c generalInfo.c worker.c
+OBJECTS = main.o variousMethods.o index.o invertedIndex.o generalInfo.o worker.o
+OUT = jobExecutor
+HEADERS = variousMethods.h index.h invertedIndex.h generalInfo.h worker.h
 
 
 all: $(OBJECTS) $(HEADERS)
@@ -21,17 +21,11 @@ index.o: index.c
 invertedIndex.o: invertedIndex.c
 	$(CC) -c invertedIndex.c
 	
-searchQuery.o: searchQuery.c
-	$(CC) -c searchQuery.c
-	
-tfQuery.o: tfQuery.c
-	$(CC) -c tfQuery.c
-	
-dfQuery.o: dfQuery.c
-	$(CC) -c dfQuery.c
-	
 generalInfo.o: generalInfo.c
 	$(CC) -c generalInfo.c
+	
+worker.o: worker.c
+	$(CC) -c worker.c
 	
 clean:
 	rm -f $(OBJECTS)

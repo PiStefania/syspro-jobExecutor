@@ -5,7 +5,8 @@
 
 
 typedef struct mapIndex{
-	char* document;			//document
+	FILE* fp;
+	char** documents;			//document
 	int words;				//words of each document
 }mapIndex;
 

@@ -3,6 +3,48 @@
 #include <string.h>
 #include "index.h"
 
+//checks if file is formatted correctly
+/*int checkFileGetLines(FILE *fp){
+	int read;
+	size_t len = 0;
+	int lines = 0;
+	
+	//change after
+	int counterIds = 0;
+	int id;
+	char* line = NULL;
+	while((read = getline(&line, &len, fp)) != -1){
+		//check line whitespace
+		char* temp = strtok(line,"\n");
+		if(temp == NULL){
+			continue;
+		}
+		temp = strtok(temp," \t");
+		if(temp == NULL){
+			continue;
+		}
+		
+		//check ids
+		id = atoi(temp);
+		if(id == counterIds){
+			lines++;
+			counterIds++;
+		}else{
+			free(temp);
+			temp = NULL;
+			return -1;
+		}
+		
+		
+	}
+	if(line){
+		free(line);
+		line = NULL;
+	}
+	
+	return lines;
+}*/
+
 mapIndex* populateIndex(int lines,FILE *fp,generalInfo* info){
 	mapIndex* index = (mapIndex*) malloc(lines*sizeof(mapIndex));
 	int read;
@@ -13,6 +55,7 @@ mapIndex* populateIndex(int lines,FILE *fp,generalInfo* info){
 	{
 		char* tempLine = strtok(line,"\n");
 		if(tempLine == NULL){
+			
 			continue;
 		}
 		

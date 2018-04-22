@@ -8,7 +8,7 @@ typedef struct levelQueue headQueue;
 typedef struct postingListsNode postingLists;
 
 struct postingListsNode{
-	int id;					//id of document
+	char* pathName;					//id of document
 	int timesAppeared;		//term frequency
 	postingLists* next;		
 }postingListsNode;
