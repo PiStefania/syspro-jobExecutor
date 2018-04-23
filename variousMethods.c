@@ -3,9 +3,6 @@
 #include <ctype.h>
 #include <string.h>
 #include "variousMethods.h"
-#include "tfQuery.h"
-#include "dfQuery.h"
-#include "searchQuery.h"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -59,8 +56,8 @@ void pickArgumentsMain(int argc,char* argv[],char** docfile,int* w){
 	}
 }
 
-//checks if file is formatted correctly
-int checkFileGetLines(FILE *fp){
+//checks file and returns array of paths
+pathsStruct* checkFileGetPaths(FILE *fp){
 	int read;
 	size_t len = 0;
 	int lines = 0;
@@ -96,11 +93,60 @@ int checkFileGetLines(FILE *fp){
 		line = NULL;
 	}
 	
+	pathsStruct* p = malloc(sizeof(pathsStruct)); 
+	p->paths = malloc(lines*sizeof(char*));
+	p->noOfPaths = lines;
 	if(pathsExist){
-		return lines;
+		rewind(fp);
+		int i=0;
+		while((read = getline(&line, &len, fp)) != -1){
+			//check line whitespace
+			char* temp = strtok(line,"\n");
+			if(temp == NULL){
+				continue;
+			}
+			temp = strtok(temp," \t");
+			if(temp == NULL){
+				continue;
+			}
+
+			//check if path exists
+			dirDesc = opendir(line);
+			if(dirDesc != NULL){
+				p->paths[i] = malloc((strlen(line)+1)*sizeof(char));
+				strcpy(p->paths[i],line);
+				closedir(dirDesc);
+				i++;
+			}
+		}
+		
+		if(line){
+			free(line);
+			line = NULL;
+		}
+	}else{
+		return NULL;
 	}
-	return -1;
+	return p;
 }
+
+void destroyPathsStruct(pathsStruct** p){
+	for(int i=0;i<(*p)->noOfPaths;i++){
+		free((*p)->paths[i]);
+		(*p)->paths[i] = NULL;
+	}
+	free((*p)->paths);
+	(*p)->paths = NULL;
+	free((*p));
+	*p = NULL;
+}
+
+void printPaths(pathsStruct* p){
+	for(int i=0;i<p->noOfPaths;i++){
+		printf("%s\n",p->paths[i]);
+	}
+}
+
 
 //this function executes all kinds of queries (/tf, /df, /search, /exit)
 /*void optionsUserInput(int K,rootNode* root,generalInfo* info,mapIndex* index){
