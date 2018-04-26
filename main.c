@@ -6,6 +6,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <dirent.h>
 
 int main (int argc,char* argv[]){
 	
@@ -27,26 +28,79 @@ int main (int argc,char* argv[]){
 			destroyPathsStruct(&p);
 			exit(1);
 		}else{
-			//printf("Paths created\n");
-			//printPaths(p);
 			//manage number of workers
 			if(w >= p->noOfPaths){
 				w = p->noOfPaths;
 			}
 			//manage number of paths for each process
-			//printf("W: %d, paths: %d\n",w,p->noOfPaths);
-			int paths = returnNumPaths(w,p->noOfPaths);
-			//printf("Paths for each worker: %d\n",paths);
+			int paths = returnNumPaths(&w,p->noOfPaths);
+			int tempPaths = 0;
 			//create processes
 			pid_t childpid;
 			for (int i=0;i<w;i++){
 				if ((childpid = fork()) <= 0 ){
-					//populate worker's index and trie and then wait
+					printf("\nChild %d\n",i);
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
-					memmove(pathsEach[0],p->paths[i],paths*sizeof(char*));
+					copyPaths(pathsEach,&p->paths[tempPaths],paths);
+					
+					mapIndex** indexes = NULL;
+					//for each path
+					int previousNoFiles = 0;
+					for(int j=0;j<paths;j++){
+						DIR *dir;
+						struct dirent *direntp;
+						if ((dir = opendir(pathsEach[j])) == NULL)
+							fprintf(stderr, "cannot open %s\n",pathsEach[j]);
+						else{
+							//for each file in dir
+							int noFiles = 0;
+							//count files
+							while((direntp=readdir(dir)) != NULL){
+								if (direntp->d_name[0] != '.'){
+									noFiles++;
+								}
+							}
+							rewinddir(dir);
+							char** fileNames = malloc(noFiles*sizeof(char*));
+							int k=0;
+							while((direntp=readdir(dir)) != NULL && k<noFiles){
+								if (direntp->d_name[0] != '.'){
+									printf("FILE: %s\n",direntp->d_name);
+									fileNames[k] = malloc((strlen(direntp->d_name)+1)*sizeof(char));
+									strcpy(fileNames[k],direntp->d_name);
+									k++;
+								}
+							}
+							//populate indexes
+							indexes = populateIndexes(fileNames,pathsEach[j],noFiles,previousNoFiles,indexes);
+							
+							previousNoFiles += noFiles;
+							//free fileNames array
+							for(int k=0;k<noFiles;k++){
+								free(fileNames[k]);
+								fileNames[k] = NULL;
+							}
+							free(fileNames);
+							fileNames = NULL;	
+							closedir(dir);
+						}
+					}
+					
+					//free indexes GIA TORA
+					destroyIndexes(previousNoFiles,indexes);
+					
+					//free paths
+					for(int j=0;j<paths;j++){
+						free(pathsEach[j]);
+					}
 					free(pathsEach);
 					break;	//wait meta
+				}else{
+					tempPaths += paths;
+					if(tempPaths - paths > paths){
+						break;
+					}
 				}
 			}
 		}

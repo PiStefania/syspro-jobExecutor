@@ -147,6 +147,27 @@ void printPaths(pathsStruct* p){
 	}
 }
 
+void copyPaths(char** tempArray,char** array,int paths){
+	for(int i=0;i<paths;i++){
+		tempArray[i] = malloc((strlen(array[i])+1)*sizeof(char));
+		strcpy(tempArray[i],array[i]);
+	}
+}
+
+int countFileLines(FILE *fp){
+	char ch;
+	int lines = 0;
+	while(!feof(fp))
+	{
+		ch = fgetc(fp);
+		if(ch == '\n')
+		{
+			lines++;
+		}
+	}
+	lines++;
+	return lines;
+}
 
 //this function executes all kinds of queries (/tf, /df, /search, /exit)
 /*void optionsUserInput(int K,rootNode* root,generalInfo* info,mapIndex* index){
