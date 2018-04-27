@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <signal.h>
 
 int main (int argc,char* argv[]){
 	
@@ -38,8 +39,10 @@ int main (int argc,char* argv[]){
 			//create processes
 			pid_t childpid;
 			for (int i=0;i<w;i++){
-				if ((childpid = fork()) <= 0 ){
-					printf("\nChild %d\n",i);
+				childpid = fork();
+				if (childpid == 0 ){
+					//set to pids
+					printf("i: %d process ID: %ld parent ID:%ld child ID:%ld\n", i,(long)getpid(), (long)getppid(),(long)childpid);
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
@@ -90,12 +93,29 @@ int main (int argc,char* argv[]){
 					//populate worker's trie
 					rootNode *root = createRoot();
 					populateTrieWorker(root,indexesArr);
+				
+					printf("BEFORE SIGNAL\n");
+					//set signal continue handling
+					signal(SIGCONT,enableOptions);
+					printf("BEFORE PAUSE + %d\n",SIGSTOP);
 					
+					//named pipe??
+					optionsUserInput(root);
 					
-					//free indexes GIA TORA
+					/*kill(getpid(),SIGSTOP);
+					
+					printf("BEFOREEE\n");
+					if(executeOptions){
+						printf("CONTINUEEEEEEEE\n");
+						optionsUserInput(root);
+					}else{
+						printf("DONTTTTTTT\n");
+					}*/
+					
+					//free indexes
 					destroyIndexes(indexesArr);
-					
-					//free inverted index GIA TORA
+
+					//free inverted index
 					destroyInvertedIndex(&root);
 					
 					//free paths
@@ -103,12 +123,19 @@ int main (int argc,char* argv[]){
 						free(pathsEach[j]);
 					}
 					free(pathsEach);
-					break;	//wait meta
-				}else{
+					break;
+				}
+				if(childpid > 0){
+					//continue children
+					printf("BEFOREEE CONTINUATION\n");
+					kill(getpid(),SIGCONT);
 					tempPaths += paths;
 					if(tempPaths - paths > paths){
-						break;
+						continue;
 					}
+				}
+				if(childpid < 0){
+					perror("Unsuccessful fork\n");
 				}
 			}
 		}

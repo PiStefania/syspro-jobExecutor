@@ -4,6 +4,9 @@
 #include <fcntl.h>
 #include "worker.h"
 #include "variousMethods.h"
+#include <signal.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 int returnNumPaths(int *w,int noPaths){
 	int numPaths = 0;
@@ -63,3 +66,25 @@ void destroyIndexes(indexesArray* indexesArr){
 	free(indexesArr);
 	indexesArr = NULL;
 }
+
+void enableOptions(int signum){
+	executeOptions = 1;
+}
+
+/*void continueChildren(pid_t* pids,int w){
+	for(int i=0;i<w;i++){
+		kill(pids[i], SIGCONT);
+		sleep(1);
+	}
+}*/
+
+/*void killChildren(pid_t* pids,int w){
+	int status;
+	for(int i=0;i<w;i++){
+		kill(pids[i], SIGTERM);
+		sleep(4);
+		if(waitpid(pids[i], &status, WNOHANG)==0){
+			kill(pids[i],SIGKILL);
+		}
+	}
+}*/

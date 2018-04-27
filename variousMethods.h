@@ -1,7 +1,7 @@
 #ifndef _VARIOUSMETHODS_H_
 #define _VARIOUSMETHODS_H_
 
-//#include "invertedIndex.h"
+#include "invertedIndex.h"
 
 typedef struct pathsStruct{
 	int noOfPaths;
@@ -11,7 +11,7 @@ typedef struct pathsStruct{
 
 void pickArgumentsMain(int argc,char* argv[],char** docfile,int* w);
 pathsStruct* checkFileGetPaths(FILE *fp);
-//void optionsUserInput(int K,rootNode* root,generalInfo* info,mapIndex* index);
+void optionsUserInput(rootNode* root);
 
 void printPaths(pathsStruct* p);
 void destroyPathsStruct(pathsStruct** p);

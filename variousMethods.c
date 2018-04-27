@@ -169,113 +169,41 @@ int countFileLines(FILE *fp){
 	return lines;
 }
 
-//this function executes all kinds of queries (/tf, /df, /search, /exit)
-/*void optionsUserInput(int K,rootNode* root,generalInfo* info,mapIndex* index){
+//this function executes all kinds of queries (/search, /maxcount/, /mincount, /wc, /exit)
+void optionsUserInput(rootNode* root){
+	printf("----OPTIONS----");
 	int read;
 	size_t len = 0;
 	char* line = NULL;
 	char* l = NULL;
 	char* token = NULL;
-	//printf("Input desirable query: \n");
-	while(1){
-		//printf("Reminder ('/search %d words', '/df', '/df word', '/tf id word', '/exit').\n",K);
-		if((read = getline(&line, &len, stdin)) != -1){
-			l = strtok(line,"\n");
-			if(l == NULL){
-				continue;
-			}
-			token = strtok(l," \t");
-			if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0){
-				printf("Exiting process.\n");
-				break;
-			}else if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
-				token = strtok(NULL," \t");
-				if(token == NULL){
-					printf("Search query with no search words.Terminating process.\n");
-					break;
-				}
-				int words = 1;
-				
-				scores* scoresArray = createScoresArray(); 
-				while(token!=NULL){
-					//search		
-					calculateScoresWord(root,token,info,scoresArray,index);
-					//last word
-					if(words == MAX_WORDS){
-						break;
-					}
-					token = strtok(NULL," \t");
-					words++;
-				}
-				
-				//print k scores
-				heapSort(scoresArray);
-				int maxK = K;
-				if(K > scoresArray->actualSize){
-					maxK = scoresArray->actualSize;
-				}
-				printMaxKScores(scoresArray,index,maxK);
-				destroyScoresArray(&scoresArray);
-			}else if(strcmp(token,"/df")==0 || strcmp(token,"\\df")==0){
-				token = strtok(NULL," \t");
-				if(token == NULL){
-					//return all
-					stack* stackWord = malloc(sizeof(stack));
-					initializeStack(&stackWord,STACK_SIZE);					
-					DFS(root->start->firstNode,stackWord);
-					destroyStack(&stackWord);
-				}else{
-					//return df of specific word
-					while(token != NULL){
-						int specificDocumentFrequency = retDocFrequency(root,token);
-						if(specificDocumentFrequency == -1){
-							printf("An error occured.Terminating process.\n");
-							break;
-						}else if(specificDocumentFrequency == -2 || specificDocumentFrequency == 0){
-							printf("Not found.\n");
-						}else{
-							printf("%s %d\n",token,specificDocumentFrequency);
-						}
-						token = strtok(NULL," \t");
-					}
-				}
-			}else if(strcmp(token,"/tf")==0 || strcmp(token,"\\tf")==0){
-				token = strtok(NULL," \t");
-				if(token == NULL){
-					//printf("Tf query with no document id.Terminating process.\n");
-					continue;
-				}
-				int id = atoi(token);
-				if(id == 0 && token[0]!='0'){
-					//printf("Tf query with false document id.Terminating process.\n");
-					continue;
-				}
-				char* word = strtok(NULL," \t");
-				if(word == NULL){
-					//printf("Tf query with no search word.Terminating process.\n");
-					continue;
-				}
-				
-				int timesAppeared = returnTimesAppeared(root,id,word);
-				if(timesAppeared == -1){
-					printf("An error occured.Terminating process.\n");
-					break;
-				}else if(timesAppeared == -2 || timesAppeared == 0){
-					continue;
-					//printf("Not found.\n");
-				}else{
-					printf("%d %s %d\n",id,word,timesAppeared);
-				}
-				
-			}else{
-				printf("Your input is not a query.Terminating process.\n");				
-				break;
-			}
+	while((read = getline(&line, &len, stdin)) != -1){
+		l = strtok(line,"\n");
+		if(l == NULL){
 		}
-		if(read == -1)
-			break;
+		token = strtok(l," \t");
+		if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0){
+			printf("\n--EXIT--\n");
+		}else if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
+			printf("\n--SEARCH--\n");
+		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
+			printf("\n--MAXCOUNT--\n");
+		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
+			/*token = strtok(NULL," \t");
+			if(token == NULL){
+				//printf("Tf query with no document id.Terminating process.\n");
+				continue;
+			}*/
+			printf("\n--MINCOUNT--\n");
+		}else if(strcmp(token,"/wc")==0 || strcmp(token,"\\wc")==0){
+			printf("\n--WC--\n");
+		}else{
+			printf("Your input is not a query.Terminating process.\n");				
+		}
 	}
 	
-	free(line);
-	line = NULL;
-}*/
+	if(line){
+		free(line);
+		line = NULL;
+	}
+}
