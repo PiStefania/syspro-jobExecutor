@@ -4,7 +4,6 @@
 #include "index.h"
 
 mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
-	printf("\nLINES: %d in file : %s\n",lines,fileName);
 	mapIndex* index = (mapIndex*) malloc(lines*sizeof(mapIndex));
 	int read;
 	char *line = NULL;
@@ -27,6 +26,7 @@ mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 		}
 		counter++;
 	}
+	index->words = 0;
 	index->noDocs = counter;
 	index->fileName = malloc((strlen(fileName)+1)*sizeof(char));
 	strcpy(index->fileName,fileName);
@@ -34,7 +34,6 @@ mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 		free(line);
 		line = NULL;
 	}
-
 	return index;
 }
 

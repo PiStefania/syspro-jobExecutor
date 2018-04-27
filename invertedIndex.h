@@ -7,16 +7,21 @@ typedef struct trieN trieNode;
 typedef struct levelQueue headQueue;
 typedef struct postingListsNode postingLists;
 
+typedef struct linesArray{
+	int* lines;
+	int length;
+}linesArray;
+
 struct postingListsNode{
-	int	line;
+	char* fileName;
+	linesArray* linesArr;
 	int timesAppeared;		//term frequency
 	postingLists* next;		
 }postingListsNode;
 
 typedef struct postingListsHead{
-	char* fileName;
 	int documentFrequency;		//size of postingLists
-	postingLists* head;
+	postingLists* firstNode;
 }postingListsHead;
 
 struct trieN{
@@ -41,12 +46,18 @@ typedef struct rootNode{
 rootNode* createRoot();
 headQueue* createHeadQueue();
 void populateTrie(rootNode* root,mapIndex* index,int noElems);
-void insertTrie(char* word,int id,rootNode* root);
-headQueue* insertCharacter(headQueue* wordQueue,char c,int id,int lastChar,int firstChar);
+void insertTrie(char* word,char* fileName,int line,rootNode* root);
+headQueue* insertCharacter(headQueue* wordQueue,char c,char* fileName,int line,int lastChar,int firstChar);
 trieNode* createNode(char c,int firstChar);
-//int insertPostList(postingListsHead** list,int id);
+void insertPostList(postingListsHead** head,char* fileName,int line);
 void destroyInvertedIndex(rootNode** root);
-//void destroyPostList(trieNode** node);
+void destroyPostList(trieNode** node);
 void destroyHeadQueues(headQueue** head);
+void destroyPostingListNode(postingLists** node);
+
+//linesArray functions
+linesArray* initializeArrayLines();
+int getNextEmptyPosLine(linesArray* linesArr);
+void doubleLinesArray(linesArray* linesArr);
 
 #endif

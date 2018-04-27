@@ -4,11 +4,16 @@
 #include <sys/types.h>
 
 #include "index.h"
-//#include "invertedIndex.h"
+#include "invertedIndex.h"
 
+typedef struct indexesArray{
+	mapIndex** indexes;
+	int length;
+}indexesArray;
 
 int returnNumPaths(int *w,int noPaths);
-mapIndex** populateIndexes(char** fileNames,char* path,int noFiles,int previousNoFiles,mapIndex** indexes);
-void destroyIndexes(int length,mapIndex** indexes);
+indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArray* indexesArr);
+void populateTrieWorker(rootNode *root,indexesArray* indexesArr);
+void destroyIndexes(indexesArray* indexesArr);
 
 #endif

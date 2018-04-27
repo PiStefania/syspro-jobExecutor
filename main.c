@@ -44,7 +44,9 @@ int main (int argc,char* argv[]){
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
 					
-					mapIndex** indexes = NULL;
+					indexesArray* indexesArr = malloc(sizeof(indexesArray));
+					indexesArr->indexes = NULL;
+					indexesArr->length = 0;
 					//for each path
 					int previousNoFiles = 0;
 					for(int j=0;j<paths;j++){
@@ -66,16 +68,14 @@ int main (int argc,char* argv[]){
 							int k=0;
 							while((direntp=readdir(dir)) != NULL && k<noFiles){
 								if (direntp->d_name[0] != '.'){
-									printf("FILE: %s\n",direntp->d_name);
 									fileNames[k] = malloc((strlen(direntp->d_name)+1)*sizeof(char));
 									strcpy(fileNames[k],direntp->d_name);
 									k++;
 								}
 							}
 							//populate indexes
-							indexes = populateIndexes(fileNames,pathsEach[j],noFiles,previousNoFiles,indexes);
+							indexesArr = populateIndexes(fileNames,pathsEach[j],noFiles,indexesArr);
 							
-							previousNoFiles += noFiles;
 							//free fileNames array
 							for(int k=0;k<noFiles;k++){
 								free(fileNames[k]);
@@ -87,8 +87,16 @@ int main (int argc,char* argv[]){
 						}
 					}
 					
+					//populate worker's trie
+					rootNode *root = createRoot();
+					populateTrieWorker(root,indexesArr);
+					
+					
 					//free indexes GIA TORA
-					destroyIndexes(previousNoFiles,indexes);
+					destroyIndexes(indexesArr);
+					
+					//free inverted index GIA TORA
+					destroyInvertedIndex(&root);
 					
 					//free paths
 					for(int j=0;j<paths;j++){

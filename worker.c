@@ -20,11 +20,11 @@ int returnNumPaths(int *w,int noPaths){
 	return numPaths;
 }
 
-mapIndex** populateIndexes(char** fileNames,char* path,int noFiles,int previousNoFiles,mapIndex** indexes){
-	if(indexes == NULL){
-		indexes = malloc(noFiles*sizeof(mapIndex*));
+indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArray* indexesArr){
+	if(indexesArr->indexes == NULL){
+		indexesArr->indexes = malloc(noFiles*sizeof(mapIndex*));
 	}else{
-		indexes = realloc(indexes,(noFiles + previousNoFiles)*sizeof(mapIndex*)); 
+		indexesArr->indexes = realloc(indexesArr->indexes,(indexesArr->length+noFiles)*sizeof(mapIndex*)); 
 	}
 	for(int i=0;i<noFiles;i++){
 		//create and populate each index with each file
@@ -38,22 +38,28 @@ mapIndex** populateIndexes(char** fileNames,char* path,int noFiles,int previousN
 		}else{
 			int lines = countFileLines(fp);
 			rewind(fp);
-			indexes[i] = populateIndex(lines,fp,fullName);
+			int newPos = i + indexesArr->length;
+			indexesArr->indexes[newPos] = populateIndex(lines,fp,fullName);
 		}
 		fclose(fp);
 		free(fullName);
 	}
-	return indexes;
+	indexesArr->length += noFiles;
+	return indexesArr;
 }
 
-
-
-
-void destroyIndexes(int length,mapIndex** indexes){
-	for(int i=0;i<length;i++){
-		printMapIndex(indexes[i],indexes[i]->noDocs);
-		destroyMapIndex(indexes[i],indexes[i]->noDocs);
+void populateTrieWorker(rootNode *root,indexesArray* indexesArr){
+	for(int i=0;i<indexesArr->length;i++){
+		populateTrie(root,indexesArr->indexes[i],indexesArr->indexes[i]->noDocs);
 	}
-	free(indexes);
-	indexes = NULL;
+}
+
+void destroyIndexes(indexesArray* indexesArr){
+	for(int i=0;i<indexesArr->length;i++){
+		destroyMapIndex(indexesArr->indexes[i],indexesArr->indexes[i]->noDocs);
+	}
+	free(indexesArr->indexes);
+	indexesArr->indexes = NULL;
+	free(indexesArr);
+	indexesArr = NULL;
 }

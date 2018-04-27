@@ -1,9 +1,11 @@
 CC = gcc -g -lm
 FILES = main.c variousMethods.c worker.c index.c invertedIndex.c
-OBJECTS = main.o variousMethods.o  worker.o index.o invertedIndex.o
+OBJECTS = main.o variousMethods.o worker.o index.o invertedIndex.o
+HEADERS = variousMethods.h worker.h index.h invertedIndex.h
+OUT = jobExecutor
 
 all: $(OBJECTS) $(HEADERS)
-	$(CC) -o $(OUT) $(FILES) -lm
+	$(CC) -o $(OUT) $(FILES) 
 	make clean
 	
 main.o: main.c
