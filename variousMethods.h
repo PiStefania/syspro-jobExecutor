@@ -11,7 +11,8 @@ typedef struct pathsStruct{
 
 void pickArgumentsMain(int argc,char* argv[],char** docfile,int* w);
 pathsStruct* checkFileGetPaths(FILE *fp);
-void optionsUserInput(rootNode* root);
+void optionsUserInput();
+int returnPosWorker(int w,pid_t worker,pid_t* workers);
 
 void printPaths(pathsStruct* p);
 void destroyPathsStruct(pathsStruct** p);

@@ -38,16 +38,29 @@ int main (int argc,char* argv[]){
 			int tempPaths = 0;
 			//create processes
 			pid_t childpid;
+			pid_t parent = getpid();
+			indexesArray* indexesArr = NULL;
+			rootNode *root = NULL;
+			pid_t workers[w];
+			for(int i=0;i<w;i++){
+				workers[i] = 0;
+			}
+			
+			//create fifos
+			createFIFOS(w);
 			for (int i=0;i<w;i++){
 				childpid = fork();
+				long pid;
 				if (childpid == 0 ){
+					
+					workers[i] = getpid();
 					//set to pids
 					printf("i: %d process ID: %ld parent ID:%ld child ID:%ld\n", i,(long)getpid(), (long)getppid(),(long)childpid);
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
 					
-					indexesArray* indexesArr = malloc(sizeof(indexesArray));
+					indexesArr = malloc(sizeof(indexesArray));
 					indexesArr->indexes = NULL;
 					indexesArr->length = 0;
 					//for each path
@@ -91,32 +104,8 @@ int main (int argc,char* argv[]){
 					}
 					
 					//populate worker's trie
-					rootNode *root = createRoot();
+					root = createRoot();
 					populateTrieWorker(root,indexesArr);
-				
-					printf("BEFORE SIGNAL\n");
-					//set signal continue handling
-					signal(SIGCONT,enableOptions);
-					printf("BEFORE PAUSE + %d\n",SIGSTOP);
-					
-					//named pipe??
-					optionsUserInput(root);
-					
-					/*kill(getpid(),SIGSTOP);
-					
-					printf("BEFOREEE\n");
-					if(executeOptions){
-						printf("CONTINUEEEEEEEE\n");
-						optionsUserInput(root);
-					}else{
-						printf("DONTTTTTTT\n");
-					}*/
-					
-					//free indexes
-					destroyIndexes(indexesArr);
-
-					//free inverted index
-					destroyInvertedIndex(&root);
 					
 					//free paths
 					for(int j=0;j<paths;j++){
@@ -126,9 +115,6 @@ int main (int argc,char* argv[]){
 					break;
 				}
 				if(childpid > 0){
-					//continue children
-					printf("BEFOREEE CONTINUATION\n");
-					kill(getpid(),SIGCONT);
 					tempPaths += paths;
 					if(tempPaths - paths > paths){
 						continue;
@@ -137,6 +123,45 @@ int main (int argc,char* argv[]){
 				if(childpid < 0){
 					perror("Unsuccessful fork\n");
 				}
+			}
+			//if parent
+			if(parent == getpid()){
+				printf("We are in parent %ld\n",(long)parent);
+				
+				//open named pipes and read from stdin
+				int read;
+				size_t len = 0;
+				char* line = NULL;
+				char* l = NULL;
+				while((read = getline(&line, &len, stdin)) != -1){
+					l = strtok(line,"\n");
+					if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0)
+						break;
+					if(l == NULL){
+						continue;
+					}
+					parentFIFOS(w,l);
+				}
+				
+				if(line){
+					free(line);
+					line = NULL;
+				}
+			}else{
+				//printf("We are in child with pid: %ld\n",(long)getpid());
+				int pos = returnPosWorker(w,getpid(),workers);
+
+				
+				while(childFIFOS(pos));
+				
+				
+				//free indexes
+				destroyIndexes(indexesArr);
+
+				//free inverted index
+				destroyInvertedIndex(&root);
+				
+				deleteFIFOS(w);
 			}
 		}
 		fclose (inFile);

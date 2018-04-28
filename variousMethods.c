@@ -169,8 +169,9 @@ int countFileLines(FILE *fp){
 	return lines;
 }
 
+
 //this function executes all kinds of queries (/search, /maxcount/, /mincount, /wc, /exit)
-void optionsUserInput(rootNode* root){
+void optionsUserInput(){
 	printf("----OPTIONS----");
 	int read;
 	size_t len = 0;
@@ -184,6 +185,7 @@ void optionsUserInput(rootNode* root){
 		token = strtok(l," \t");
 		if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0){
 			printf("\n--EXIT--\n");
+			break;
 		}else if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
 			printf("\n--SEARCH--\n");
 		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
@@ -206,4 +208,13 @@ void optionsUserInput(rootNode* root){
 		free(line);
 		line = NULL;
 	}
+}
+
+int returnPosWorker(int w,pid_t worker,pid_t* workers){
+	for(int i=0;i<w;i++){
+		if(workers[i]==worker){
+			return i;
+		}
+	}
+	return -1;
 }

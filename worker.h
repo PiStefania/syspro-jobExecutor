@@ -18,8 +18,10 @@ indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArr
 void populateTrieWorker(rootNode *root,indexesArray* indexesArr);
 void destroyIndexes(indexesArray* indexesArr);
 
-void enableOptions(int signum);
-void continueChildren(pid_t* pids,int w);
-void killChildren(pid_t* pids,int w);
+//FIFOS
+void createFIFOS(int w);
+void parentFIFOS(int w,char* line);
+int childFIFOS(int worker);
+void deleteFIFOS(int w);
 
 #endif
