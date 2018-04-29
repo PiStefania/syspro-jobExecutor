@@ -21,7 +21,7 @@ void destroyIndexes(indexesArray* indexesArr);
 //FIFOS
 void createFIFOS(int w);
 void parentFIFOS(int w,char* line);
-int childFIFOS(int worker);
+int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root);
 void deleteFIFOS(int w);
 
 #endif

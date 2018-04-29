@@ -2,10 +2,11 @@
 #define _INDEX_H_
 
 typedef struct mapIndex{
+	char** documents;			//document
 	char* fileName;
-	char* document;			//document
-	int words;				//words of each document
+	int words;
 	int noDocs;
+	int characters;
 }mapIndex;
 
 

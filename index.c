@@ -4,7 +4,11 @@
 #include "index.h"
 
 mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
-	mapIndex* index = (mapIndex*) malloc(lines*sizeof(mapIndex));
+	mapIndex* index = (mapIndex*) malloc(sizeof(mapIndex));
+	index->documents = (char**)malloc(lines*sizeof(char*));
+	index->characters = 0;
+	index->noDocs = 0;
+	index->words = 0;
 	int read;
 	char *line = NULL;
 	size_t len = 0;
@@ -18,15 +22,15 @@ mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 		
 		//insert to index
 		if(tempLine == NULL){
-			index[counter].document = NULL;
+			index->documents[counter] = NULL;
 		}
 		else{
-			index[counter].document = malloc((strlen(tempLine)+1)*sizeof(char));
-			strcpy(index[counter].document,tempLine);
+			index->documents[counter] = malloc((strlen(tempLine)+1)*sizeof(char));
+			strcpy(index->documents[counter],tempLine);
+			index->characters += strlen(tempLine);
 		}
 		counter++;
 	}
-	index->words = 0;
 	index->noDocs = counter;
 	index->fileName = malloc((strlen(fileName)+1)*sizeof(char));
 	strcpy(index->fileName,fileName);
@@ -40,17 +44,19 @@ mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 void printMapIndex(mapIndex* index,int noElems){
 	printf("Printing Map Index\n");
 	for(int i=0; i < noElems; i++){
-		printf("Document: '%s'\n",index[i].document);
+		printf("Document: '%s'\n",index->documents[i]);
 	}
 }
 
 void destroyMapIndex(mapIndex* index,int noElems){
 	for(int i=0;i<noElems;i++){
-		if(index[i].document!=NULL){
-			free(index[i].document);
-			index[i].document = NULL;
+		if(index->documents[i]!=NULL){
+			free(index->documents[i]);
+			index->documents[i] = NULL;
 		}
 	}
+	free(index->documents);
+	index->documents = NULL;
 	free(index->fileName);
 	index->fileName = NULL;
 	free(index);

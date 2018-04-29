@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 #include "variousMethods.h"
 
 #include <fcntl.h>
@@ -169,47 +170,6 @@ int countFileLines(FILE *fp){
 	return lines;
 }
 
-
-//this function executes all kinds of queries (/search, /maxcount/, /mincount, /wc, /exit)
-void optionsUserInput(){
-	printf("----OPTIONS----");
-	int read;
-	size_t len = 0;
-	char* line = NULL;
-	char* l = NULL;
-	char* token = NULL;
-	while((read = getline(&line, &len, stdin)) != -1){
-		l = strtok(line,"\n");
-		if(l == NULL){
-		}
-		token = strtok(l," \t");
-		if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0){
-			printf("\n--EXIT--\n");
-			break;
-		}else if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
-			printf("\n--SEARCH--\n");
-		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
-			printf("\n--MAXCOUNT--\n");
-		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
-			/*token = strtok(NULL," \t");
-			if(token == NULL){
-				//printf("Tf query with no document id.Terminating process.\n");
-				continue;
-			}*/
-			printf("\n--MINCOUNT--\n");
-		}else if(strcmp(token,"/wc")==0 || strcmp(token,"\\wc")==0){
-			printf("\n--WC--\n");
-		}else{
-			printf("Your input is not a query.Terminating process.\n");				
-		}
-	}
-	
-	if(line){
-		free(line);
-		line = NULL;
-	}
-}
-
 int returnPosWorker(int w,pid_t worker,pid_t* workers){
 	for(int i=0;i<w;i++){
 		if(workers[i]==worker){
@@ -218,3 +178,15 @@ int returnPosWorker(int w,pid_t worker,pid_t* workers){
 	}
 	return -1;
 }
+
+int getNumberLength(int no){
+	int numberLength;
+	if(no == 0){
+		numberLength = 1;
+	}else{
+		numberLength = floor(log10(abs(no))) + 1;
+	}
+	
+	return numberLength;
+}
+

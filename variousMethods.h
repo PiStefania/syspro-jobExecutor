@@ -18,5 +18,6 @@ void printPaths(pathsStruct* p);
 void destroyPathsStruct(pathsStruct** p);
 void copyPaths(char** tempArray,char** array,int paths);
 int countFileLines(FILE *fp);
+int getNumberLength(int no);
 
 #endif

@@ -48,6 +48,7 @@ int main (int argc,char* argv[]){
 			
 			//create fifos
 			createFIFOS(w);
+			sleep(1);
 			for (int i=0;i<w;i++){
 				childpid = fork();
 				long pid;
@@ -59,6 +60,7 @@ int main (int argc,char* argv[]){
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
+					
 					
 					indexesArr = malloc(sizeof(indexesArray));
 					indexesArr->indexes = NULL;
@@ -135,12 +137,12 @@ int main (int argc,char* argv[]){
 				char* l = NULL;
 				while((read = getline(&line, &len, stdin)) != -1){
 					l = strtok(line,"\n");
-					if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0)
-						break;
 					if(l == NULL){
 						continue;
 					}
 					parentFIFOS(w,l);
+					if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0)
+						break;
 				}
 				
 				if(line){
@@ -151,9 +153,11 @@ int main (int argc,char* argv[]){
 				//printf("We are in child with pid: %ld\n",(long)getpid());
 				int pos = returnPosWorker(w,getpid(),workers);
 
-				
-				while(childFIFOS(pos));
-				
+				while(1){
+					int ret = childFIFOS(pos,indexesArr,root);
+					if(ret == 0)
+						break;
+				}
 				
 				//free indexes
 				destroyIndexes(indexesArr);

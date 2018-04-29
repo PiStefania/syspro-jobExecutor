@@ -18,8 +18,8 @@ void populateTrie(rootNode* root,mapIndex* index,int noElems){
 	char* fileName = index->fileName;
 	for(int i=0;i<noElems;i++){
 		int wordsSpecificDoc = 0;
-		char* tempDocument = malloc((strlen(index[i].document)+1)*sizeof(char));
-		strcpy(tempDocument,index[i].document);
+		char* tempDocument = malloc((strlen(index->documents[i])+1)*sizeof(char));
+		strcpy(tempDocument,index->documents[i]);
 		if(tempDocument == NULL)
 			continue;
 		
@@ -31,7 +31,7 @@ void populateTrie(rootNode* root,mapIndex* index,int noElems){
 			insertTrie(tempWord,fileName,i,root);
 			tempWord = strtok(NULL," \t");
 		}
-		index[i].words = wordsSpecificDoc;
+		index->words += wordsSpecificDoc;
 		free(tempDocument);
 		tempDocument = NULL;
 	}

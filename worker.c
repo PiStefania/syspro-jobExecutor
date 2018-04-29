@@ -103,6 +103,8 @@ void createFIFOS(int w){
 	}
 }
 void parentFIFOS(int w,char* line){
+	int* readfds = malloc(w*sizeof(int));
+	int* writefds = malloc(w*sizeof(int));
 	for(int i=0;i<w;i++){
 		int numberLength;
 		if(i == 0){
@@ -124,18 +126,29 @@ void parentFIFOS(int w,char* line){
 			perror("server: can't open write fifo");
 		}
 		
-		serverSide(readfd, writefd,line);
-		close(readfd);
-		close(writefd);
+		readfds[i] = readfd;
+		writefds[i] = writefd;
 		
 		free(FIFO1);
 		FIFO1 = NULL;
 		free(FIFO2);
 		FIFO2 = NULL;
 	}
+	
+	serverSide(readfds, writefds,line,w);
+	
+	for(int i=0;i<w;i++){
+		close(readfds[i]);
+		close(writefds[i]);
+	}
+	
+	free(readfds);
+	readfds = NULL;
+	free(writefds);
+	writefds = NULL;
 }
 
-int childFIFOS(int worker){	
+int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root){	
 
 	int numberLength;
 	if(worker == 0){
@@ -161,7 +174,7 @@ int childFIFOS(int worker){
 		perror("client: can't open read fifo \n");
 	}
 	
-	int ret = clientSide(readfd, writefd);
+	int ret = clientSide(readfd,writefd,indexesArr,root);
 	close(readfd);
 	close(writefd);
 	
@@ -186,6 +199,18 @@ void deleteFIFOS(int w){
 		sprintf(FIFO1,"./tmp/fifo1worker%d",i);
 		sprintf(FIFO2,"./tmp/fifo2worker%d",i);
 		
+		int readfd, writefd;
+		/* Open the FIFOs. We assume server has
+		already created them. */
+		if((writefd = open(FIFO1, O_WRONLY)) < 0)
+		{
+			perror("client: can't open write fifo \n");
+		}
+		if((readfd = open(FIFO2, O_RDONLY)) < 0)
+		{
+			perror("client: can't open read fifo \n");
+		}
+		
 		//delete FIFOS
 		if(unlink(FIFO1) < 0) {
 			perror("client: can't unlink \n");
@@ -193,6 +218,11 @@ void deleteFIFOS(int w){
 		if(unlink(FIFO2) < 0) {
 			perror("client: can't unlink \n");
 		}
+		
+		free(FIFO1);
+		FIFO1 = NULL;
+		free(FIFO2);
+		FIFO2 = NULL;
 	}
 }
 
