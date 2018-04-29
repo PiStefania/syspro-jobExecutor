@@ -8,5 +8,7 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root);
 
 //for option handling
 void sumWcs(char** strings,int w);
+void selectMaxCount(char** strings,int w);
+void selectMinCount(char** strings,int w);
 
 #endif

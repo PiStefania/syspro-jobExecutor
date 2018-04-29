@@ -7,9 +7,11 @@
 #include <unistd.h>
 #include <sys/errno.h>
 #include "worker.h"
-#include "wc.h"
 #include "variousMethods.h"
 #include "namedPipes.h"
+#include "wc.h"
+#include "maxcount.h"
+#include "mincount.h"
 
 #define BUFFSIZE 1024
 
@@ -33,7 +35,11 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 			strings[i] = malloc((strlen(buf)+1)*sizeof(char));
 			strcpy(strings[i],buf);
 			char* token = strtok(buf," \t");
-			if(strcmp(token,"wc")==0){
+			if(strcmp(token,"maxcount")==0){
+				flagOption = 2;
+			}else if(strcmp(token,"mincount")==0){
+				flagOption = 3;
+			}else if(strcmp(token,"wc")==0){
 				flagOption = 4;
 			}else if(strcmp(token,"exit")==0){
 				flagOption = 5;
@@ -47,6 +53,12 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 	
 	//print to stdout
 	switch(flagOption){
+		case 2:
+			selectMaxCount(strings,w);
+			break;
+		case 3:
+			selectMinCount(strings,w);
+			break;
 		case 4:
 			sumWcs(strings,w);
 			break;
@@ -86,18 +98,41 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root){
 				exit(1);
 			}
 		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
-			if (write(STDOUT_FILENO, "\n--MAXCOUNT--\n", n) != n) { 
-				exit(1);
-			}
-		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
-			/*token = strtok(NULL," \t");
+			token = strtok(NULL," ");
 			if(token == NULL){
-				//printf("Tf query with no document id.Terminating process.\n");
-				continue;
-			}*/
-			if (write(STDOUT_FILENO, "\n--MINCOUNT--\n", n) != n) { 
+				if(write(writefd, "error", strlen("error")) != strlen("error")){
+					exit(1);
+				}
+			}
+			maxCountInfo* info = returnMaxCount(root,token);
+			int lengthMax = getNumberLength(info->timesAppeared);
+			char* infoStr = malloc((strlen("maxcount") + strlen(info->fileName) + lengthMax + 3)*sizeof(char));
+			sprintf(infoStr,"maxcount %s %d",info->fileName,info->timesAppeared);
+			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
+				destroyMaxCountInfo(info);
+				free(infoStr);
 				exit(1);
 			}
+			destroyMaxCountInfo(info);
+			free(infoStr);
+		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
+			token = strtok(NULL," ");
+			if(token == NULL){
+				if(write(writefd, "error", strlen("error")) != strlen("error")){
+					exit(1);
+				}
+			}
+			minCountInfo* info = returnMinCount(root,token);
+			int lengthMin = getNumberLength(info->timesAppeared);
+			char* infoStr = malloc((strlen("mincount") + strlen(info->fileName) + lengthMin + 3)*sizeof(char));
+			sprintf(infoStr,"mincount %s %d",info->fileName,info->timesAppeared);
+			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
+				destroyMinCountInfo(info);
+				free(infoStr);
+				exit(1);
+			}
+			destroyMinCountInfo(info);
+			free(infoStr);
 		}else if(strcmp(token,"/wc")==0 || strcmp(token,"\\wc")==0){
 			wcInfo* info = returnInfoStruct(indexesArr);
 			int lengthLines = getNumberLength(info->lines);
@@ -145,5 +180,63 @@ void sumWcs(char** strings,int w){
 	free(infoStr);
 }
 
+void selectMaxCount(char** strings,int w){
+	int maxCount = 0;
+	char* fileName = NULL;
+	for(int i=0;i<w;i++){
+		char* token = strtok(strings[i]," ");
+		token = strtok(NULL," ");
+		int tempMax = atoi(strtok(NULL," "));
+		if(i==0){
+			fileName = token;
+		}
+		if(maxCount < tempMax){
+			fileName = token;
+			maxCount = tempMax;
+		}
+		else if(maxCount == tempMax){
+			if(strcmp(fileName,token) > 0){
+					fileName = token;
+			}
+		}
+	}
+	char* infoStr = malloc((strlen(fileName) + strlen("\n") + 1)*sizeof(char));
+	sprintf(infoStr,"%s\n",fileName);
+	if (write(STDOUT_FILENO, infoStr , strlen(infoStr)) != strlen(infoStr)) { 
+		free(infoStr);
+		exit(1);
+	}
+	free(infoStr);
+}
+
+void selectMinCount(char** strings,int w){
+	int minCount = 1;
+	char* fileName = NULL;
+	for(int i=0;i<w;i++){
+		char* token = strtok(strings[i]," ");
+		token = strtok(NULL," ");
+		int tempMin = atoi(strtok(NULL," "));
+		if(i==0){
+			fileName = token;
+		}
+		if(minCount > tempMin){
+			fileName = token;
+			minCount = tempMin;
+		}
+		else if(minCount == tempMin){
+			if(strcmp(fileName,token) > 0){
+				fileName = token;
+			}
+		}
+	}
+	
+	char* infoStr = malloc((strlen(fileName) + 3)*sizeof(char));
+	sprintf(infoStr,"%s\n",fileName);
+	if (write(STDOUT_FILENO, infoStr , strlen(infoStr)) != strlen(infoStr)) { 
+		free(infoStr);
+		exit(1);
+	}
+	free(infoStr);
+}
 
 

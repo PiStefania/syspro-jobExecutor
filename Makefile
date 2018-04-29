@@ -1,7 +1,7 @@
 CC = gcc -g -lm
-FILES = main.c variousMethods.c worker.c index.c invertedIndex.c namedPipes.c wc.c
-OBJECTS = main.o variousMethods.o worker.o index.o invertedIndex.o namedPipes.o wc.o
-HEADERS = variousMethods.h worker.h index.h invertedIndex.h namedPipes.h wc.h
+FILES = main.c variousMethods.c worker.c index.c invertedIndex.c namedPipes.c wc.c maxcount.c mincount.c
+OBJECTS = main.o variousMethods.o worker.o index.o invertedIndex.o namedPipes.o wc.o maxcount.o mincount.o
+HEADERS = variousMethods.h worker.h index.h invertedIndex.h namedPipes.h wc.h maxcount.h mincount.h
 OUT = jobExecutor
 
 all: $(OBJECTS) $(HEADERS)
@@ -28,6 +28,12 @@ namedPipes.o: namedPipes.c
 	
 wc.o: wc.c
 	$(CC) -c wc.c
+	
+maxcount.o: maxcount.c
+	$(CC) -c maxcount.c
+
+mincount.o: mincount.c
+	$(CC) -c mincount.c
 	
 clean:
 	rm -f $(OBJECTS)
