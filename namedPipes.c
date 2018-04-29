@@ -88,15 +88,30 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root){
 		//write back to parent
 		buf[n] = '\0';
 		char* token = strtok(buf," \t");
-		if(strcmp(token,"/exit")==0 || strcmp(token,"\\exit")==0){
-			if (write(writefd, "exit", strlen("exit")) != strlen("exit")) { 
-				exit(1);
+		if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
+			token = strtok(NULL," ");
+			if(token == NULL){
+				if (write(writefd, "error", strlen("error")) != strlen("error")) { 
+					exit(1);
+				}
 			}
-			return 0;
-		}else if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
-			if (write(STDOUT_FILENO, "\n--SEARCH--\n", n) != n) { 
-				exit(1);
+
+			int words = 0;
+			char* tempStr = token;
+			while(token!=NULL){
+				words++;
+				token = strtok(NULL," ");
 			}
+			
+			int i=0;
+			while(i<words && tempStr!=NULL){
+				//search		
+				
+				//last word
+				tempStr = strtok(NULL," ");
+				i++;
+			}
+			
 		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
 			token = strtok(NULL," ");
 			if(token == NULL){
@@ -148,6 +163,17 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root){
 			}
 			free(info);
 			free(infoStr);
+		}else if(strcmp(token,"/exit")==0 || strcmp(token,"\\exit")==0){
+			if (write(writefd, "exit", strlen("exit")) != strlen("exit")) { 
+				exit(1);
+			}
+			
+			//free indexes
+			destroyIndexes(indexesArr);
+
+			//free inverted index
+			destroyInvertedIndex(&root);
+			return 0;
 		}
 	}
 	

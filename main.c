@@ -159,12 +159,6 @@ int main (int argc,char* argv[]){
 						break;
 				}
 				
-				//free indexes
-				destroyIndexes(indexesArr);
-
-				//free inverted index
-				destroyInvertedIndex(&root);
-				
 				deleteFIFOS(w);
 			}
 		}
