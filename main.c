@@ -56,8 +56,6 @@ int main (int argc,char* argv[]){
 				if (childpid == 0 ){
 					
 					workers[i] = getpid();
-					//set to pids
-					printf("i: %d process ID: %ld parent ID:%ld child ID:%ld\n", i,(long)getpid(), (long)getppid(),(long)childpid);
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
@@ -129,7 +127,6 @@ int main (int argc,char* argv[]){
 			}
 			//if parent
 			if(parent == getpid()){
-				printf("We are in parent %ld\n",(long)parent);
 				//open named pipes and read from stdin
 				int read;
 				size_t len = 0;
@@ -150,7 +147,6 @@ int main (int argc,char* argv[]){
 					line = NULL;
 				}
 			}else{
-				//printf("We are in child with pid: %ld\n",(long)getpid());
 				int pos = returnPosWorker(w,getpid(),workers);
 
 				fileInfo* info = createOpenLog(getpid());

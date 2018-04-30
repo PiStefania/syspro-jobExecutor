@@ -33,8 +33,8 @@ void recordTime(int logfd){
 	time_t t = time(NULL);
     struct tm *tm = localtime(&t);
 	char* timeStr = malloc((strlen(asctime(tm))+5)*sizeof(char));
-    sprintf(timeStr,"%s  : ", asctime(tm));
-	timeStr[strlen(timeStr)-4] = 0;
+    sprintf(timeStr,"%s", asctime(tm));
+	timeStr[strlen(timeStr)-1] = 0;
     if(write(logfd,timeStr,strlen(timeStr)) != strlen(timeStr)){
 		exit(1);
 	}

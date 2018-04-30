@@ -13,6 +13,7 @@
 #include "maxcount.h"
 #include "mincount.h"
 #include "exit.h"
+#include "search.h"
 
 #define BUFFSIZE 1024
 #define PERMS 0777
@@ -39,6 +40,8 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 			strcpy(strings[i],buf);
 			char* token = strtok(buf,"|");
 			if(strcmp(token,"search")==0){
+				logfiles[i] = malloc((strlen("./log/Worker_") + 6) * sizeof(char));
+				strcpy(logfiles[i],strtok(NULL," "));
 				flagOption = 1;
 			}else if(strcmp(token,"maxcount")==0){
 				logfiles[i] = malloc((strlen("./log/Worker_") + 6) * sizeof(char));
@@ -49,8 +52,10 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 				strcpy(logfiles[i],strtok(NULL," "));
 				flagOption = 3;
 			}else if(strcmp(token,"wc")==0){
+				logfiles[i] = NULL;
 				flagOption = 4;
 			}else if(strcmp(token,"exit")==0){
+				logfiles[i] = NULL;
 				flagOption = 5;
 			}
 		}else{
@@ -130,6 +135,7 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 		if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
 			//record in log file
 			recordTime(infoFile->logfd);
+			recordDivider(infoFile->logfd);
 			recordQueries(infoFile->logfd,"search");
 			recordDivider(infoFile->logfd);
 			
@@ -154,6 +160,8 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			recordDivider(infoFile->logfd);
 			
 			int i=0;
+			char** searchWords = malloc((words-2)*sizeof(char*));
+			
 			while(i<words && tempStr!=NULL){
 				//search
 				tempStr = strtok(NULL," ");
@@ -164,22 +172,25 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 						}
 					}
 				}
-				
-				if(i==words-1){
+				else if(i==words-1){
 					if(atoi(tempStr) == 0){
 						if (write(writefd, "error", strlen("error")) != strlen("error")) { 
 							exit(1);
 						}
 					}
+				}else{
+					searchWords[i] = malloc((strlen(tempStr)+1)*sizeof(char));
+					strcpy(searchWords[i],tempStr);
 				}
 				i++;
 			}
 			
-			//char* searchQuery = searchFiles();
+			char* searchQuery = searchFiles(root,searchWords,words-2);
 			
 		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
 			//record in log file
 			recordTime(infoFile->logfd);
+			recordDivider(infoFile->logfd);
 			recordQueries(infoFile->logfd,"maxcount");
 			recordDivider(infoFile->logfd);
 			
@@ -208,6 +219,7 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
 			//record in log file
 			recordTime(infoFile->logfd);
+			recordDivider(infoFile->logfd);
 			recordQueries(infoFile->logfd,"mincount");
 			recordDivider(infoFile->logfd);
 			
