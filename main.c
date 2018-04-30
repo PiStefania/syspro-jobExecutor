@@ -3,6 +3,7 @@
 #include <string.h>
 #include "variousMethods.h"
 #include "worker.h"
+#include "exit.h"
 
 #include <unistd.h>
 #include <sys/types.h>
@@ -129,7 +130,6 @@ int main (int argc,char* argv[]){
 			//if parent
 			if(parent == getpid()){
 				printf("We are in parent %ld\n",(long)parent);
-				
 				//open named pipes and read from stdin
 				int read;
 				size_t len = 0;
@@ -153,11 +153,15 @@ int main (int argc,char* argv[]){
 				//printf("We are in child with pid: %ld\n",(long)getpid());
 				int pos = returnPosWorker(w,getpid(),workers);
 
+				fileInfo* info = createOpenLog(getpid());
 				while(1){
-					int ret = childFIFOS(pos,indexesArr,root);
+					int ret = childFIFOS(pos,indexesArr,root,info);
 					if(ret == 0)
 						break;
 				}
+				
+				free(info->logFile);
+				close(info->logfd);
 				
 				deleteFIFOS(w);
 			}

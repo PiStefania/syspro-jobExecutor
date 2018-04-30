@@ -5,6 +5,7 @@
 
 #include "index.h"
 #include "invertedIndex.h"
+#include "exit.h"
 
 int executeOptions;
 
@@ -21,7 +22,7 @@ void destroyIndexes(indexesArray* indexesArr);
 //FIFOS
 void createFIFOS(int w);
 void parentFIFOS(int w,char* line);
-int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root);
+int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,fileInfo* info);
 void deleteFIFOS(int w);
 
 #endif
