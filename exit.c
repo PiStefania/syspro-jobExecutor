@@ -8,18 +8,15 @@
 #include "exit.h"
 #define PERMS 0777
 
-
-fileInfo* createOpenLog(pid_t worker){
-	fileInfo* info = malloc(sizeof(fileInfo));
+int createOpenLog(pid_t worker){
 	int length = getNumberLength(worker);
-	info->logFile = malloc((strlen("./log/Worker_") + length + 1)*sizeof(char));
-	sprintf(info->logFile,"./log/Worker_%d",worker);
+	char* logFile = malloc((strlen("./log/Worker_") + length + 1)*sizeof(char));
+	sprintf(logFile,"./log/Worker_%d",worker);
 	int writefd;
-	if((writefd = open(info->logFile, O_CREAT | O_WRONLY | O_APPEND, PERMS)) < 0) {
+	if((writefd = open(logFile, O_CREAT | O_WRONLY | O_APPEND, PERMS)) < 0) {
 		perror("Cannot create file");
 	}
-	info->logfd = writefd;
-	return info;
+	return writefd;
 }
 
 void recordQueries(int logfd,char* value){
@@ -44,5 +41,47 @@ void recordTime(int logfd){
 void recordDivider(int logfd){
 	if(write(logfd," : ",strlen(" : ")) != strlen(" : ")){
 		exit(1);
+	}
+}
+
+void recordSearchQuery(rootNode* root,char* word,int logfd){
+	trieNode* tempNode = root->start->firstNode;
+	for(int i=0; i < strlen(word); i++){
+		while(tempNode != NULL){
+			if(tempNode->character == word[i]){
+				if(i != strlen(word)-1){
+					tempNode = tempNode->head->firstNode;
+					break;
+				}else{
+					if(tempNode->postList != NULL){
+						postingLists* temp = tempNode->postList->firstNode;
+						int recorded = 1;
+						while(temp!=NULL){
+							if(temp->worker == getpid() && recorded){
+								recordTime(logfd);
+								recordDivider(logfd);
+								recordQueries(logfd,"search");
+								recordDivider(logfd);
+								recordQueries(logfd,word);
+								recordDivider(logfd);
+								recordQueries(logfd,temp->fileName);
+								recorded = 0;
+							}else if(temp->worker == getpid() && recorded==0){
+								recordDivider(logfd);
+								recordQueries(logfd,temp->fileName);
+							}
+							temp = temp->next;
+						}
+						recordQueries(logfd,"\n");
+						return;
+					}
+				}
+			}else{
+				tempNode = tempNode->nextNode;
+			}
+		}
+		if(tempNode == NULL){
+			break;
+		}
 	}
 }

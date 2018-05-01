@@ -148,7 +148,7 @@ void parentFIFOS(int w,char* line){
 	writefds = NULL;
 }
 
-int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,fileInfo* info){	
+int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,int logfd){	
 
 	int numberLength;
 	if(worker == 0){
@@ -174,7 +174,7 @@ int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,fileInfo* info
 		perror("client: can't open read fifo \n");
 	}
 	
-	int ret = clientSide(readfd,writefd,indexesArr,root,info);
+	int ret = clientSide(readfd,writefd,indexesArr,root,logfd);
 	close(readfd);
 	close(writefd);
 	

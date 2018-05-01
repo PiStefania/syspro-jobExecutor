@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/errno.h>
+#include <time.h>
 #include "worker.h"
 #include "variousMethods.h"
 #include "namedPipes.h"
@@ -15,7 +16,7 @@
 #include "exit.h"
 #include "search.h"
 
-#define BUFFSIZE 1024
+#define BUFFSIZE 10000
 #define PERMS 0777
 
 
@@ -27,10 +28,13 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 	int i=0;
 	char** strings = malloc(w*sizeof(char*));
 	int flagOption = 0;
-	char** logfiles = malloc(w*sizeof(char*));
+	
+	clock_t start_t = clock();
+	int noWorkers = w;
+	
 	while(i<w){
 		//write line for worker to see
-		if (write(writefds[i], line,strlen(line)) != strlen(line)) { 
+		if (write(writefds[i], line, strlen(line)) != strlen(line)) { 
 			perror("Write error\n");
 		}
 		
@@ -39,29 +43,39 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 			strings[i] = malloc((strlen(buf)+1)*sizeof(char));
 			strcpy(strings[i],buf);
 			char* token = strtok(buf,"|");
+			double deadline;
+			clock_t difference;
+			double secs; 
+			if(strcmp(token,"search")!=0){
+				deadline = 0;
+				secs = 0;
+				difference = 0;
+			}else{
+				char* deadl = strtok(NULL," ");
+				deadline = atof(deadl);
+				difference = clock() - start_t;
+				secs = (double) difference / CLOCKS_PER_SEC;
+			}	
 			if(strcmp(token,"search")==0){
-				logfiles[i] = malloc((strlen("./log/Worker_") + 6) * sizeof(char));
-				strcpy(logfiles[i],strtok(NULL," "));
 				flagOption = 1;
-			}else if(strcmp(token,"maxcount")==0){
-				logfiles[i] = malloc((strlen("./log/Worker_") + 6) * sizeof(char));
-				strcpy(logfiles[i],strtok(NULL," "));
+				if(secs < deadline){
+					char* remaining = strtok(NULL,"");
+					write(STDOUT_FILENO, remaining, strlen(remaining));		
+				}else{
+					noWorkers--;
+				}
+			}
+			else if(strcmp(token,"maxcount")==0){
 				flagOption = 2;
 			}else if(strcmp(token,"mincount")==0){
-				logfiles[i] = malloc((strlen("./log/Worker_") + 6) * sizeof(char));
-				strcpy(logfiles[i],strtok(NULL," "));
 				flagOption = 3;
 			}else if(strcmp(token,"wc")==0){
-				logfiles[i] = NULL;
 				flagOption = 4;
 			}else if(strcmp(token,"exit")==0){
-				logfiles[i] = NULL;
 				flagOption = 5;
+			}else{
+				strings[i] = NULL;
 			}
-		}else{
-			strings[i] = NULL;
-			logfiles[i] = NULL;
-			perror("Error in reading line\n");
 		}
 		i++;
 	}
@@ -69,33 +83,23 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 	//print to stdout
 	char* infoStr = NULL;
 	int writefd;
+	int lengthW;
+	int lengthAnswered;
 	switch(flagOption){
 		case 1:
-			//printSearchLines();
+			lengthW = getNumberLength(w);
+			lengthAnswered = getNumberLength(noWorkers);
+			char* workersAnswer = malloc((strlen("Workers answered") + 5 + lengthW + lengthAnswered)*sizeof(char));
+			sprintf(workersAnswer,"%d/%d Workers answered\n",noWorkers,w);
+			write(STDOUT_FILENO, workersAnswer , strlen(workersAnswer));
+			free(workersAnswer);
+			workersAnswer = NULL;
 			break;
 		case 2:
-			infoStr = selectMaxCount(strings,w);
-			for(int i=0;i<w;i++){
-				//record in log file
-				if((writefd = open(logfiles[i], O_CREAT | O_WRONLY | O_APPEND, PERMS)) < 0) {
-					perror("Cannot open file");
-				}
-				recordQueries(writefd,infoStr);
-				recordQueries(writefd,"\n");
-			}	
-			free(infoStr);
+			selectMaxCount(strings,w);
 			break;
 		case 3:
-			infoStr = selectMinCount(strings,w);
-			for(int i=0;i<w;i++){
-				//record in log file
-				if((writefd = open(logfiles[i], O_CREAT | O_WRONLY | O_APPEND, PERMS)) < 0) {
-					perror("Cannot open file");
-				}
-				recordQueries(writefd,infoStr);
-				recordQueries(writefd,"\n");
-			}	
-			free(infoStr);
+			selectMinCount(strings,w);
 			break;
 		case 4:
 			sumWcs(strings,w);
@@ -103,28 +107,21 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 		case 5:
 			break;
 		default:
-			write(STDOUT_FILENO, "Not an option", strlen("Not an option"));
+			write(STDOUT_FILENO, "Not found\n", strlen("Not found\n"));
 			break;
 	}
 	
 	for(int i=0;i<w;i++){
-		if(logfiles[i]!=NULL){
-			free(logfiles[i]);
-			logfiles[i] = NULL;
-		}
 		if(strings[i] != NULL){
 			free(strings[i]);
 			strings[i] = NULL;
 		}
 	}
-	free(logfiles);
-	logfiles = NULL;
 	free(strings);
 	strings = NULL;
-	
 }
 
-int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,fileInfo* infoFile){
+int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,int logfd){
 	char buf[BUFFSIZE];
 	int n;
 	//read line from parent
@@ -133,12 +130,6 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 		buf[n] = '\0';
 		char* token = strtok(buf," \t");
 		if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
-			//record in log file
-			recordTime(infoFile->logfd);
-			recordDivider(infoFile->logfd);
-			recordQueries(infoFile->logfd,"search");
-			recordDivider(infoFile->logfd);
-			
 			char* remaining = strtok(NULL,"\n");
 			if(token == NULL){
 				if (write(writefd, "error", strlen("error")) != strlen("error")) { 
@@ -155,16 +146,14 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 				token = strtok(NULL," ");
 			}
 			
-			//record in log file
-			recordQueries(infoFile->logfd,tempStr);
-			recordDivider(infoFile->logfd);
 			
 			int i=0;
 			char** searchWords = malloc((words-2)*sizeof(char*));
 			
+			tempStr = strtok(tempStr," ");
+			int deadline = 0;
 			while(i<words && tempStr!=NULL){
 				//search
-				tempStr = strtok(NULL," ");
 				if(i==words-2){
 					if(strcmp(tempStr,"-d")!=0){
 						if (write(writefd, "error", strlen("error")) != strlen("error")) { 
@@ -173,7 +162,8 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 					}
 				}
 				else if(i==words-1){
-					if(atoi(tempStr) == 0){
+					deadline = atoi(tempStr);
+					if(deadline == 0){
 						if (write(writefd, "error", strlen("error")) != strlen("error")) { 
 							exit(1);
 						}
@@ -181,18 +171,32 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 				}else{
 					searchWords[i] = malloc((strlen(tempStr)+1)*sizeof(char));
 					strcpy(searchWords[i],tempStr);
+					recordSearchQuery(root,searchWords[i],logfd);
 				}
+				tempStr = strtok(NULL," ");
 				i++;
 			}
-			
-			char* searchQuery = searchFiles(root,searchWords,words-2);
+						
+			searchInfo* arrayInfo = searchFiles(root,searchWords,words-2);
+			if(arrayInfo != NULL){
+				foundLines* array = combinedLines(arrayInfo,indexesArr);
+				char* allLines = searchQueries(array,deadline);
+				if(write(writefd, allLines, strlen(allLines)) != strlen(allLines)){
+					exit(1);
+				}
+				destroyArrayInfo(arrayInfo);
+			}else{
+				if(write(writefd, "Not Found", strlen("Not Found")) != strlen("Not Found")){
+					exit(1);
+				}
+			}
 			
 		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
 			//record in log file
-			recordTime(infoFile->logfd);
-			recordDivider(infoFile->logfd);
-			recordQueries(infoFile->logfd,"maxcount");
-			recordDivider(infoFile->logfd);
+			recordTime(logfd);
+			recordDivider(logfd);
+			recordQueries(logfd,"maxcount");
+			recordDivider(logfd);
 			
 			token = strtok(NULL," ");
 			if(token == NULL){
@@ -202,13 +206,18 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			}
 			
 			//record in log file
-			recordQueries(infoFile->logfd,token);
-			recordDivider(infoFile->logfd);
+			recordQueries(logfd,token);
+			recordDivider(logfd);
 			
 			maxCountInfo* info = returnMaxCount(root,token);
+			
+			//record in log file
+			recordQueries(logfd,info->fileName);
+			recordQueries(logfd,"\n");
+			
 			int lengthMax = getNumberLength(info->timesAppeared);
-			char* infoStr = malloc((strlen("maxcount") + strlen(info->fileName) + lengthMax + 4 + strlen(infoFile->logFile))*sizeof(char));
-			sprintf(infoStr,"maxcount|%s %s %d",infoFile->logFile,info->fileName,info->timesAppeared);
+			char* infoStr = malloc((strlen("maxcount") + strlen(info->fileName) + lengthMax + 4)*sizeof(char));
+			sprintf(infoStr,"maxcount| %s %d",info->fileName,info->timesAppeared);
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				destroyMaxCountInfo(info);
 				free(infoStr);
@@ -218,10 +227,10 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			free(infoStr);
 		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
 			//record in log file
-			recordTime(infoFile->logfd);
-			recordDivider(infoFile->logfd);
-			recordQueries(infoFile->logfd,"mincount");
-			recordDivider(infoFile->logfd);
+			recordTime(logfd);
+			recordDivider(logfd);
+			recordQueries(logfd,"mincount");
+			recordDivider(logfd);
 			
 			token = strtok(NULL," ");
 			if(token == NULL){
@@ -231,13 +240,18 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			}
 			
 			//record in log file
-			recordQueries(infoFile->logfd,token);
-			recordDivider(infoFile->logfd);
+			recordQueries(logfd,token);
+			recordDivider(logfd);
 			
 			minCountInfo* info = returnMinCount(root,token);
+			
+			//record in log file
+			recordQueries(logfd,info->fileName);
+			recordQueries(logfd,"\n");
+			
 			int lengthMin = getNumberLength(info->timesAppeared);
-			char* infoStr = malloc((strlen("mincount") + strlen(info->fileName) + lengthMin + 4 + strlen(infoFile->logFile))*sizeof(char));
-			sprintf(infoStr,"mincount|%s %s %d",infoFile->logFile,info->fileName,info->timesAppeared);
+			char* infoStr = malloc((strlen("mincount") + strlen(info->fileName) + lengthMin + 4)*sizeof(char));
+			sprintf(infoStr,"mincount| %s %d",info->fileName,info->timesAppeared);
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				destroyMinCountInfo(info);
 				free(infoStr);
@@ -246,6 +260,13 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			destroyMinCountInfo(info);
 			free(infoStr);
 		}else if(strcmp(token,"/wc")==0 || strcmp(token,"\\wc")==0){
+			//record in log file
+			recordTime(logfd);
+			recordDivider(logfd);
+			recordQueries(logfd,"wc");
+			recordDivider(logfd);
+			
+			
 			wcInfo* info = returnInfoStruct(indexesArr);
 			int lengthLines = getNumberLength(info->lines);
 			int lengthWords = getNumberLength(info->words);
@@ -253,6 +274,10 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			int sum = lengthLines + lengthWords + lengthChars;
 			char* infoStr = malloc((strlen("wc") + sum + 6)*sizeof(char));
 			sprintf(infoStr,"wc|%d %d %d",info->lines,info->words,info->characters);
+			char* logStr = malloc((sum+9)*sizeof(char));
+			sprintf(logStr,"%d : %d : %d\n",info->lines,info->words,info->characters);
+			//record in log file
+			recordQueries(logfd,logStr);
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				free(info);
 				free(infoStr);
@@ -271,6 +296,8 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,f
 			//free inverted index
 			destroyInvertedIndex(&root);
 			return 0;
+		}else{
+			return 1;
 		}
 	}
 	
@@ -303,7 +330,7 @@ void sumWcs(char** strings,int w){
 	free(infoStr);
 }
 
-char* selectMaxCount(char** strings,int w){
+void selectMaxCount(char** strings,int w){
 	int maxCount = 0;
 	char* fileName = NULL;
 	for(int i=0;i<w;i++){
@@ -330,10 +357,9 @@ char* selectMaxCount(char** strings,int w){
 		free(infoStr);
 		exit(1);
 	}
-	return infoStr;
 }
 
-char* selectMinCount(char** strings,int w){
+void selectMinCount(char** strings,int w){
 	int minCount = 1;
 	char* fileName = NULL;
 	for(int i=0;i<w;i++){
@@ -361,7 +387,6 @@ char* selectMinCount(char** strings,int w){
 		free(infoStr);
 		exit(1);
 	}
-	return infoStr;
 }
 
 

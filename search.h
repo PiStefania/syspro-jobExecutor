@@ -2,20 +2,39 @@
 #define _SEARCH_H_
 
 #include "invertedIndex.h"
-#include "index.h"
-
-typedef struct searchInfo{
-	searchNode* nodes;
-	int length;
-}searchInfo
+#include "worker.h"
 
 typedef struct searchNode{
 	char* fileName;
 	int* lines;
+	int noLines;
+}searchNode;
+
+typedef struct searchInfo{
+	searchNode* nodes;
+	int length;
+	int position;
 }searchInfo;
 
-char* searchFiles(rootNode* root,char** searchWords,int words);
-searchInfo* createSearchNodesWord(searchInfo* nodes,rootNode* root,char* word,char** fileNames);
-int searchFileName(searchInfo* nodes,char* fileName);
+typedef struct foundLines{
+	int length;
+	char** lines;
+}foundLines;
+
+char* searchQueries(foundLines* array,int deadline);
+foundLines* combinedLines(searchInfo* arrayInfo,indexesArray* indexesArr);
+searchInfo* searchFiles(rootNode* root,char** searchWords,int words);
+void createSearchNodesWord(searchInfo* nodes,rootNode* root,char* word);
+int searchFileName(searchInfo* arrayInfo,char* fileName);
+
+//for structures
+searchInfo* initializeArrayInfo();
+void doubleArrayInfo(searchInfo* arrayInfo);
+void destroyArrayInfo(searchInfo* arrayInfo);
+void printSearchInfo(searchInfo* arrayInfo);
+
+void heapify(int* arr, int n, int i);
+void buildHeap(int* arr,int length);
+void heapSort(int* arr,int length);
 
 #endif

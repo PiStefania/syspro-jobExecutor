@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "invertedIndex.h"
 
 #define DEFAULT_LINES 5
@@ -98,6 +99,7 @@ void insertPostList(postingListsHead** head,char* fileName,int line){
 		strcpy((*head)->firstNode->fileName,fileName);
 		(*head)->firstNode->linesArr = initializeArrayLines();
 		(*head)->firstNode->linesArr->lines[0] = line;
+		(*head)->firstNode->worker = getpid();
 	}else{
 		postingLists* tempNode = (*head)->firstNode;
 		postingLists* lastNode = NULL;
@@ -128,6 +130,7 @@ void insertPostList(postingListsHead** head,char* fileName,int line){
 			lastNode->next->linesArr->lines[0] = line;
 			lastNode->next->timesAppeared = 1;
 			lastNode->next->next = NULL;
+			lastNode->next->worker = getpid();
 		}
 	}
 }

@@ -149,15 +149,14 @@ int main (int argc,char* argv[]){
 			}else{
 				int pos = returnPosWorker(w,getpid(),workers);
 
-				fileInfo* info = createOpenLog(getpid());
+				int logfd = createOpenLog(getpid());
 				while(1){
-					int ret = childFIFOS(pos,indexesArr,root,info);
+					int ret = childFIFOS(pos,indexesArr,root,logfd);
 					if(ret == 0)
 						break;
 				}
 				
-				free(info->logFile);
-				close(info->logfd);
+				close(logfd);
 				
 				deleteFIFOS(w);
 			}

@@ -14,6 +14,7 @@ typedef struct linesArray{
 
 struct postingListsNode{
 	char* fileName;
+	pid_t worker;
 	linesArray* linesArr;
 	int timesAppeared;		//term frequency
 	postingLists* next;		
