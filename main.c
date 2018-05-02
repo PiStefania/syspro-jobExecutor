@@ -4,7 +4,7 @@
 #include "variousMethods.h"
 #include "worker.h"
 #include "exit.h"
-
+#include <wait.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -138,7 +138,8 @@ int main (int argc,char* argv[]){
 						continue;
 					}
 					parentFIFOS(w,l);
-					if(strcmp(l,"/exit")==0 || strcmp(l,"\\exit")==0)
+					char* rem = strtok(l," ");
+					if(strcmp(l,"/exit")==0 || strcmp(rem,"\\exit")==0)
 						break;
 				}
 				
@@ -146,6 +147,11 @@ int main (int argc,char* argv[]){
 					free(line);
 					line = NULL;
 				}
+				
+				int status;
+				while((waitpid(-1,&status,0)) > 0);
+				
+				deleteFIFOS(w);
 			}else{
 				int pos = returnPosWorker(w,getpid(),workers);
 
@@ -155,10 +161,8 @@ int main (int argc,char* argv[]){
 					if(ret == 0)
 						break;
 				}
-				
+								
 				close(logfd);
-				
-				deleteFIFOS(w);
 			}
 		}
 		fclose (inFile);

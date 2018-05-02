@@ -32,6 +32,7 @@ searchInfo* initializeArrayInfo();
 void doubleArrayInfo(searchInfo* arrayInfo);
 void destroyArrayInfo(searchInfo* arrayInfo);
 void printSearchInfo(searchInfo* arrayInfo);
+void destroyFoundLines(foundLines* array);
 
 void heapify(int* arr, int n, int i);
 void buildHeap(int* arr,int length);

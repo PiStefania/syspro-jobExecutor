@@ -167,6 +167,7 @@ void createSearchNodesWord(searchInfo* arrayInfo,rootNode* root,char* word){
 				arrayInfo->nodes[arrayInfo->position] = *node;
 				heapSort(arrayInfo->nodes[arrayInfo->position].lines,arrayInfo->nodes[arrayInfo->position].noLines);
 				arrayInfo->position++;
+				free(node);
 			}
 			temp = temp->next;
 		}
@@ -276,4 +277,17 @@ void heapSort(int* arr,int length){
 		arr[i] = temp;
         heapify(arr, i, 0);
     }
+}
+
+void destroyFoundLines(foundLines* array){
+	for(int i=0;i<array->length;i++){
+		if(array->lines[i]!=NULL){
+			free(array->lines[i]);
+			array->lines[i] = NULL;
+		}
+	}
+	free(array->lines);
+	array->lines = NULL;
+	free(array);
+	array = NULL;
 }

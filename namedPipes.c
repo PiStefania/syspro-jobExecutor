@@ -73,8 +73,6 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 				flagOption = 4;
 			}else if(strcmp(token,"exit")==0){
 				flagOption = 5;
-			}else{
-				strings[i] = NULL;
 			}
 		}
 		i++;
@@ -131,13 +129,15 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 		char* token = strtok(buf," \t");
 		if(strcmp(token,"\\search")==0 || strcmp(token,"/search")==0){
 			char* remaining = strtok(NULL,"\n");
+			
 			if(token == NULL){
 				if (write(writefd, "error", strlen("error")) != strlen("error")) { 
-					exit(1);
+					return 1;
 				}
 			}
 
 			char* tempStr = malloc((strlen(remaining)+1)*sizeof(char));
+			char* temptStrPointer = tempStr;
 			strcpy(tempStr,remaining);
 			int words = 0;
 			token = strtok(remaining," ");
@@ -146,7 +146,14 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 				token = strtok(NULL," ");
 			}
 			
-			
+			if(words-2 < 0){
+				if (write(writefd, "error", strlen("error")) != strlen("error")) { 
+					free(tempStr);
+					return 1;
+				}
+				free(tempStr);
+				return 1;
+			}
 			int i=0;
 			char** searchWords = malloc((words-2)*sizeof(char*));
 			
@@ -157,16 +164,30 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 				if(i==words-2){
 					if(strcmp(tempStr,"-d")!=0){
 						if (write(writefd, "error", strlen("error")) != strlen("error")) { 
-							exit(1);
+							destroySearchWords(searchWords,words-2);
+							free(temptStrPointer);
+							temptStrPointer = NULL;
+							return 1;
 						}
+						free(temptStrPointer);
+						temptStrPointer = NULL;
+						destroySearchWords(searchWords,words-2);
+						return 1;
 					}
 				}
 				else if(i==words-1){
 					deadline = atoi(tempStr);
 					if(deadline == 0){
-						if (write(writefd, "error", strlen("error")) != strlen("error")) { 
-							exit(1);
+						if (write(writefd, "error", strlen("error")) != strlen("error")) {
+							free(temptStrPointer);
+							temptStrPointer = NULL;
+							destroySearchWords(searchWords,words-2);
+							return 1;
 						}
+						free(temptStrPointer);
+						temptStrPointer = NULL;
+						destroySearchWords(searchWords,words-2);
+						return 1;
 					}
 				}else{
 					searchWords[i] = malloc((strlen(tempStr)+1)*sizeof(char));
@@ -177,41 +198,54 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 				i++;
 			}
 						
+			free(temptStrPointer);
+			temptStrPointer = NULL;
 			searchInfo* arrayInfo = searchFiles(root,searchWords,words-2);
 			if(arrayInfo != NULL){
 				foundLines* array = combinedLines(arrayInfo,indexesArr);
 				char* allLines = searchQueries(array,deadline);
 				if(write(writefd, allLines, strlen(allLines)) != strlen(allLines)){
-					exit(1);
+					destroySearchWords(searchWords,words-2);
+					free(allLines);
+					destroyFoundLines(array);
+					destroyArrayInfo(arrayInfo);
+					return 1;
 				}
+				free(allLines);
+				destroyFoundLines(array);
 				destroyArrayInfo(arrayInfo);
 			}else{
-				if(write(writefd, "Not Found", strlen("Not Found")) != strlen("Not Found")){
-					exit(1);
+				if(write(writefd, "error", strlen("error")) != strlen("error")){
+					destroySearchWords(searchWords,words-2);
+					return 1;
+				}
+				destroySearchWords(searchWords,words-2);
+				return 1;
+			}
+			destroySearchWords(searchWords,words-2);
+		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
+			token = strtok(NULL," ");
+			if(token == NULL){
+				if(write(writefd, "error", strlen("error")) != strlen("error")){
+					return 1;
 				}
 			}
 			
-		}else if(strcmp(token,"/maxcount")==0 || strcmp(token,"\\maxcount")==0){
+			maxCountInfo* info = returnMaxCount(root,token);
+			if(info == NULL){
+				if (write(writefd,"error", strlen("error")) != strlen("error")) {
+					return 1;
+				}
+				return 1;
+			}
+			
 			//record in log file
 			recordTime(logfd);
 			recordDivider(logfd);
 			recordQueries(logfd,"maxcount");
 			recordDivider(logfd);
-			
-			token = strtok(NULL," ");
-			if(token == NULL){
-				if(write(writefd, "error", strlen("error")) != strlen("error")){
-					exit(1);
-				}
-			}
-			
-			//record in log file
 			recordQueries(logfd,token);
 			recordDivider(logfd);
-			
-			maxCountInfo* info = returnMaxCount(root,token);
-			
-			//record in log file
 			recordQueries(logfd,info->fileName);
 			recordQueries(logfd,"\n");
 			
@@ -221,31 +255,34 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				destroyMaxCountInfo(info);
 				free(infoStr);
-				exit(1);
+				return 1;
 			}
 			destroyMaxCountInfo(info);
 			free(infoStr);
 		}else if(strcmp(token,"/mincount")==0 || strcmp(token,"\\mincount")==0){
+			token = strtok(NULL," ");
+			if(token == NULL){
+				if(write(writefd, "error", strlen("error")) != strlen("error")){
+					return 1;
+				}
+			}
+			
+			
+			minCountInfo* info = returnMinCount(root,token);
+			if(info == NULL){
+				if (write(writefd,"error", strlen("error")) != strlen("error")) {
+					return 1;
+				}
+				return 1;
+			}
+			
 			//record in log file
 			recordTime(logfd);
 			recordDivider(logfd);
 			recordQueries(logfd,"mincount");
 			recordDivider(logfd);
-			
-			token = strtok(NULL," ");
-			if(token == NULL){
-				if(write(writefd, "error", strlen("error")) != strlen("error")){
-					exit(1);
-				}
-			}
-			
-			//record in log file
 			recordQueries(logfd,token);
 			recordDivider(logfd);
-			
-			minCountInfo* info = returnMinCount(root,token);
-			
-			//record in log file
 			recordQueries(logfd,info->fileName);
 			recordQueries(logfd,"\n");
 			
@@ -255,7 +292,7 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				destroyMinCountInfo(info);
 				free(infoStr);
-				exit(1);
+				return 1;
 			}
 			destroyMinCountInfo(info);
 			free(infoStr);
@@ -281,13 +318,15 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 			if (write(writefd, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 				free(info);
 				free(infoStr);
-				exit(1);
+				free(logStr);
+				return 1;
 			}
 			free(info);
 			free(infoStr);
+			free(logStr);
 		}else if(strcmp(token,"/exit")==0 || strcmp(token,"\\exit")==0){
 			if (write(writefd, "exit", strlen("exit")) != strlen("exit")) { 
-				exit(1);
+				return 1;
 			}
 			
 			//free indexes
@@ -297,6 +336,9 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 			destroyInvertedIndex(&root);
 			return 0;
 		}else{
+			if (write(writefd,"error", strlen("error")) != strlen("error")) {
+				return 1;
+			}
 			return 1;
 		}
 	}
@@ -325,7 +367,7 @@ void sumWcs(char** strings,int w){
 	sprintf(infoStr,"wc %d %d %d\n",lines,words,characters);
 	if (write(STDOUT_FILENO, infoStr, strlen(infoStr)) != strlen(infoStr)) { 
 		free(infoStr);
-		exit(1);
+		return;
 	}
 	free(infoStr);
 }
@@ -355,8 +397,9 @@ void selectMaxCount(char** strings,int w){
 
 	if (write(STDOUT_FILENO, infoStr , strlen(infoStr)) != strlen(infoStr)) { 
 		free(infoStr);
-		exit(1);
+		return;
 	}
+	free(infoStr);
 }
 
 void selectMinCount(char** strings,int w){
@@ -385,8 +428,19 @@ void selectMinCount(char** strings,int w){
 	
 	if (write(STDOUT_FILENO, infoStr , strlen(infoStr)) != strlen(infoStr)) { 
 		free(infoStr);
-		exit(1);
+		return;
 	}
+	
+	free(infoStr);
 }
 
-
+void destroySearchWords(char** searchWords,int words){
+	for(int i=0;i<words;i++){
+		if(searchWords[i]!=NULL){
+			free(searchWords[i]);
+			searchWords[i] = NULL;
+		}
+	}
+	free(searchWords);
+	searchWords = NULL;
+}

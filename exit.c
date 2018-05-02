@@ -14,15 +14,17 @@ int createOpenLog(pid_t worker){
 	sprintf(logFile,"./log/Worker_%d",worker);
 	int writefd;
 	if((writefd = open(logFile, O_CREAT | O_WRONLY | O_APPEND, PERMS)) < 0) {
+		free(logFile);
 		perror("Cannot create file");
 	}
+	free(logFile);
 	return writefd;
 }
 
 void recordQueries(int logfd,char* value){
 	if(write(logfd,value,strlen(value)) != strlen(value)){
 		perror("Cannot write value to file");
-		exit(1);
+		return;
 	}
 }
 
@@ -33,14 +35,15 @@ void recordTime(int logfd){
     sprintf(timeStr,"%s", asctime(tm));
 	timeStr[strlen(timeStr)-1] = 0;
     if(write(logfd,timeStr,strlen(timeStr)) != strlen(timeStr)){
-		exit(1);
+		free(timeStr);
+		return;
 	}
 	free(timeStr);
 }
 
 void recordDivider(int logfd){
 	if(write(logfd," : ",strlen(" : ")) != strlen(" : ")){
-		exit(1);
+		return;
 	}
 }
 

@@ -199,18 +199,6 @@ void deleteFIFOS(int w){
 		sprintf(FIFO1,"./tmp/fifo1worker%d",i);
 		sprintf(FIFO2,"./tmp/fifo2worker%d",i);
 		
-		int readfd, writefd;
-		/* Open the FIFOs. We assume server has
-		already created them. */
-		if((writefd = open(FIFO1, O_WRONLY)) < 0)
-		{
-			perror("client: can't open write fifo \n");
-		}
-		if((readfd = open(FIFO2, O_RDONLY)) < 0)
-		{
-			perror("client: can't open read fifo \n");
-		}
-		
 		//delete FIFOS
 		if(unlink(FIFO1) < 0) {
 			perror("client: can't unlink \n");

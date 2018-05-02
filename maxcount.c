@@ -24,6 +24,7 @@ maxCountInfo* returnMaxCount(rootNode* root,char* word){
 					if(tempNode->postList != NULL){
 						return searchPostListMax(tempNode->postList);
 					}
+					break;
 				}
 			}else{
 				tempNode = tempNode->nextNode;
@@ -33,6 +34,7 @@ maxCountInfo* returnMaxCount(rootNode* root,char* word){
 			return NULL;
 		}
 	}
+	return NULL;
 }
 
 //searches a postingLists list in order to find a node with max timesAppeared

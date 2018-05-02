@@ -25,6 +25,7 @@ minCountInfo* returnMinCount(rootNode* root,char* word){
 					if(tempNode->postList != NULL){
 						return searchPostListMin(tempNode->postList);
 					}
+					break;
 				}
 			}else{
 				tempNode = tempNode->nextNode;
@@ -34,6 +35,7 @@ minCountInfo* returnMinCount(rootNode* root,char* word){
 			return NULL;
 		}
 	}
+	return NULL;
 }
 
 //searches a postingLists list in order to find a node with min timesAppeared
