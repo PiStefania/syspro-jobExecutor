@@ -15,6 +15,8 @@
 
 #define PERMS 0777
 
+int* volatile killed;
+
 //return number of paths for each worker, else workers = paths
 int returnNumPaths(int *w,int noPaths){
 	int numPaths = 0;
@@ -221,4 +223,13 @@ void deleteFIFOS(int w){
 		FIFO2 = NULL;
 	}
 }
+
+//handle SIGCHLD 
+void handler(int sig){
+	pid_t pid;
+	pid = wait(NULL);
+	alive = 0;
+}
+
+
 

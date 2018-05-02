@@ -10,12 +10,14 @@
 #include <dirent.h>
 #include <signal.h>
 
+int volatile alive = 1;
+
 int main (int argc,char* argv[]){
 	
 	int w=0;
 	char* docfile = NULL;
 	pickArgumentsMain(argc,argv,&docfile,&w);
-	
+	signal(SIGCHLD, handler);
 	FILE *inFile;
 	//open file for read
 	inFile = fopen(docfile,"r");
@@ -54,12 +56,10 @@ int main (int argc,char* argv[]){
 				childpid = fork();
 				long pid;
 				if (childpid == 0 ){
-					
 					workers[i] = getpid();
 					//get specific paths
 					char** pathsEach = malloc(paths*sizeof(char*));
 					copyPaths(pathsEach,&p->paths[tempPaths],paths);
-					
 					
 					indexesArr = malloc(sizeof(indexesArray));
 					indexesArr->indexes = NULL;

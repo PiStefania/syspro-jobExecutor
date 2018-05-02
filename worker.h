@@ -7,12 +7,12 @@
 #include "invertedIndex.h"
 #include "exit.h"
 
-int executeOptions;
-
 typedef struct indexesArray{
 	mapIndex** indexes;
 	int length;
 }indexesArray;
+
+int volatile alive;
 
 int returnNumPaths(int *w,int noPaths);
 indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArray* indexesArr);
@@ -24,5 +24,6 @@ void createFIFOS(int w);
 void parentFIFOS(int w,char* line);
 int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,int logfd);
 void deleteFIFOS(int w);
+void handler(int sig);
 
 #endif

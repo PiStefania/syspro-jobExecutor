@@ -3,7 +3,7 @@
 #include <string.h>
 #include "search.h"
 #include "variousMethods.h"
-#define DEF_SIZE 10
+#define DEF_SIZE 5
 
 //return all queries as a string
 char* searchQueries(foundLines* array,int deadline){
@@ -168,6 +168,7 @@ void createSearchNodesWord(searchInfo* arrayInfo,rootNode* root,char* word){
 				node->lines = malloc(temp->linesArr->length*sizeof(int));
 				memcpy(node->lines, temp->linesArr->lines,temp->linesArr->length*sizeof(int));
 				node->noLines = temp->linesArr->length;
+				doubleArrayInfo(arrayInfo);
 				arrayInfo->nodes[arrayInfo->position] = *node;
 				heapSort(arrayInfo->nodes[arrayInfo->position].lines,arrayInfo->nodes[arrayInfo->position].noLines);
 				arrayInfo->position++;
