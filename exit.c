@@ -8,6 +8,7 @@
 #include "exit.h"
 #define PERMS 0777
 
+//creates a file for logging queries
 int createOpenLog(pid_t worker){
 	int length = getNumberLength(worker);
 	char* logFile = malloc((strlen("./log/Worker_") + length + 1)*sizeof(char));
@@ -21,6 +22,7 @@ int createOpenLog(pid_t worker){
 	return writefd;
 }
 
+//write value in log file
 void recordQueries(int logfd,char* value){
 	if(write(logfd,value,strlen(value)) != strlen(value)){
 		perror("Cannot write value to file");
@@ -28,6 +30,7 @@ void recordQueries(int logfd,char* value){
 	}
 }
 
+//write current time in log file
 void recordTime(int logfd){
 	time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -41,12 +44,14 @@ void recordTime(int logfd){
 	free(timeStr);
 }
 
+//write delimiter in log file
 void recordDivider(int logfd){
 	if(write(logfd," : ",strlen(" : ")) != strlen(" : ")){
 		return;
 	}
 }
 
+//write in log file for search query
 void recordSearchQuery(rootNode* root,char* word,int logfd){
 	trieNode* tempNode = root->start->firstNode;
 	for(int i=0; i < strlen(word); i++){

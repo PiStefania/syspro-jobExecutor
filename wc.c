@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "wc.h"
 
+//return info of wc of a worker
 wcInfo* returnInfoStruct(indexesArray* indexesArr){
 	wcInfo* info = malloc(sizeof(wcInfo));
 	info->lines = 0;

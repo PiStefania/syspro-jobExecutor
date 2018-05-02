@@ -5,6 +5,7 @@
 #include "variousMethods.h"
 #define DEF_SIZE 10
 
+//return all queries as a string
 char* searchQueries(foundLines* array,int deadline){
 	int deadLineLength = getNumberLength(deadline);
 	int sumLength = strlen("search|") + deadLineLength + 1;
@@ -20,6 +21,7 @@ char* searchQueries(foundLines* array,int deadline){
 	return sumStr;
 }
 
+//insert all foun lines in a struct
 foundLines* combinedLines(searchInfo* arrayInfo,indexesArray* indexesArr){
 	int initSize = 10;
 	int nextSize = initSize;
@@ -62,6 +64,7 @@ foundLines* combinedLines(searchInfo* arrayInfo,indexesArray* indexesArr){
 	return array;
 }
 
+//search files for each word
 searchInfo* searchFiles(rootNode* root,char** searchWords,int words){
 	if(root == NULL){
 		return NULL;
@@ -114,6 +117,7 @@ searchInfo* searchFiles(rootNode* root,char** searchWords,int words){
 	
 }
 
+//create nodes for each postingList node a word has
 void createSearchNodesWord(searchInfo* arrayInfo,rootNode* root,char* word){
 	int length = 0;
 	int found = 0;
@@ -175,7 +179,7 @@ void createSearchNodesWord(searchInfo* arrayInfo,rootNode* root,char* word){
 }
 
 
-
+//search if struct node for specific filename has been created
 int searchFileName(searchInfo* arrayInfo,char* fileName){
 	if(arrayInfo->position != 0){
 		for(int i=0;i<arrayInfo->position;i++){
@@ -187,7 +191,7 @@ int searchFileName(searchInfo* arrayInfo,char* fileName){
 	return -1;
 }
 
-
+//initialize struct
 searchInfo* initializeArrayInfo(){
 	searchInfo* arrayInfo = malloc(sizeof(searchInfo));
 	arrayInfo->position = 0;
@@ -201,6 +205,7 @@ searchInfo* initializeArrayInfo(){
 	return arrayInfo;
 }
 
+//double struct
 void doubleArrayInfo(searchInfo* arrayInfo){
 	if(arrayInfo->position==arrayInfo->length-1){
 		int oldSize = arrayInfo->length;
@@ -214,6 +219,7 @@ void doubleArrayInfo(searchInfo* arrayInfo){
 	}
 }
 
+//destroy struct
 void destroyArrayInfo(searchInfo* arrayInfo){
 	for(int i=0;i<arrayInfo->position;i++){
 		if(arrayInfo->nodes[i].fileName!=NULL){
@@ -231,6 +237,7 @@ void destroyArrayInfo(searchInfo* arrayInfo){
 	arrayInfo = NULL;
 }
 
+//print struct
 void printSearchInfo(searchInfo* arrayInfo){
 	for(int i=0;i<arrayInfo->position;i++){
 		printf("file: %s, lines: %d, ",arrayInfo->nodes[i].fileName,arrayInfo->nodes[i].noLines);
@@ -241,6 +248,7 @@ void printSearchInfo(searchInfo* arrayInfo){
 	}
 }
 
+//heapsort lines array
 void heapify(int* arr, int n, int i){
 	int largest = i;  // Initialize largest as root
     int l = 2*i + 1;  // left = 2*i + 1
@@ -279,6 +287,7 @@ void heapSort(int* arr,int length){
     }
 }
 
+//destroy foundLines array
 void destroyFoundLines(foundLines* array){
 	for(int i=0;i<array->length;i++){
 		if(array->lines[i]!=NULL){

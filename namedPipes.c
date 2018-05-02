@@ -29,6 +29,7 @@ void serverSide(int* readfds, int* writefds,char* line,int w){
 	char** strings = malloc(w*sizeof(char*));
 	int flagOption = 0;
 	
+	//start clock
 	clock_t start_t = clock();
 	int noWorkers = w;
 	
@@ -346,6 +347,7 @@ int clientSide(int readfd, int writefd,indexesArray* indexesArr,rootNode* root,i
 	return 1;
 }
 
+//sum wcs of each worker
 void sumWcs(char** strings,int w){
 	int words = 0;
 	int lines = 0;
@@ -372,6 +374,7 @@ void sumWcs(char** strings,int w){
 	free(infoStr);
 }
 
+//select max count of word from workers
 void selectMaxCount(char** strings,int w){
 	int maxCount = 0;
 	char* fileName = NULL;
@@ -402,6 +405,7 @@ void selectMaxCount(char** strings,int w){
 	free(infoStr);
 }
 
+//select min count of word from workers
 void selectMinCount(char** strings,int w){
 	int minCount = 1;
 	char* fileName = NULL;
@@ -434,6 +438,7 @@ void selectMinCount(char** strings,int w){
 	free(infoStr);
 }
 
+//destroy searchWords, array of strings for search query
 void destroySearchWords(char** searchWords,int words){
 	for(int i=0;i<words;i++){
 		if(searchWords[i]!=NULL){

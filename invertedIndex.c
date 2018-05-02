@@ -6,6 +6,7 @@
 
 #define DEFAULT_LINES 5
 
+//creates root of trie
 rootNode* createRoot(){
 	rootNode* root = malloc(sizeof(rootNode));
 	root->start = NULL;
@@ -38,6 +39,7 @@ void populateTrie(rootNode* root,mapIndex* index,int noElems){
 	}
 }
 
+//create horizontal list
 headQueue* createHeadQueue(){
 	headQueue* head = malloc(sizeof(headQueue));
 	head->firstNode = NULL;
@@ -45,7 +47,7 @@ headQueue* createHeadQueue(){
 	head->size = 0;
 }
 
-
+//create node for trie
 trieNode* createNode(char c,int firstChar){
 	trieNode* node = malloc(sizeof(trieNode));
 	node->character = c;
@@ -56,6 +58,7 @@ trieNode* createNode(char c,int firstChar){
 	return node;
 }
 
+//initialize lines array
 linesArray* initializeArrayLines(){
 	linesArray* linesArr = malloc(sizeof(linesArray));
 	linesArr->length = DEFAULT_LINES;
@@ -66,6 +69,7 @@ linesArray* initializeArrayLines(){
 	return linesArr;
 }
 
+//get next empty position of lines array
 int getNextEmptyPosLine(linesArray* linesArr){
 	for(int i=0;i<linesArr->length;i++){
 		if(linesArr->lines[i]==-1){
@@ -75,6 +79,7 @@ int getNextEmptyPosLine(linesArray* linesArr){
 	return -1;
 }
 
+//double lines array when full
 void doubleLinesArray(linesArray* linesArr){
 	int nextPos = getNextEmptyPosLine(linesArr);
 	if(nextPos==-1){
@@ -87,9 +92,10 @@ void doubleLinesArray(linesArray* linesArr){
 	}
 }
 
-
+//insert a node to postingLists list
 void insertPostList(postingListsHead** head,char* fileName,int line){
 	if(*head == NULL){
+		//empty list
 		*head = malloc(sizeof(postingListsHead));
 		(*head)->documentFrequency = 1;
 		(*head)->firstNode = malloc(sizeof(postingLists));
@@ -101,6 +107,7 @@ void insertPostList(postingListsHead** head,char* fileName,int line){
 		(*head)->firstNode->linesArr->lines[0] = line;
 		(*head)->firstNode->worker = getpid();
 	}else{
+		//search for same
 		postingLists* tempNode = (*head)->firstNode;
 		postingLists* lastNode = NULL;
 		while(tempNode != NULL){
@@ -121,6 +128,7 @@ void insertPostList(postingListsHead** head,char* fileName,int line){
 			}
 		}
 		
+		//not found -> add a new node
 		if(tempNode == NULL){
 			(*head)->documentFrequency++;
 			lastNode->next = malloc(sizeof(postingLists));
@@ -135,7 +143,7 @@ void insertPostList(postingListsHead** head,char* fileName,int line){
 	}
 }
 
-
+//insert a word to trie
 void insertTrie(char* word,char* fileName,int line,rootNode* root){
 	if(root == NULL){
 		root = createRoot();
@@ -210,13 +218,14 @@ headQueue* insertCharacter(headQueue* wordQueue,char c,char* fileName,int line,i
 	}
 }
 
+//destroys trie
 void destroyInvertedIndex(rootNode** root){
 	destroyHeadQueues(&(*root)->start);
 	free(*root);
 	*root = NULL;
 }
 
-
+//destroys postList
 void destroyPostList(trieNode** node){
 	if((*node)->postList != NULL){
 		postingLists* currentNode = (*node)->postList->firstNode;
@@ -232,6 +241,7 @@ void destroyPostList(trieNode** node){
 	}
 }
 
+//destroys a node ftom postingLists
 void destroyPostingListNode(postingLists** node){
 	free((*node)->linesArr->lines);
 	(*node)->linesArr->lines = NULL;
@@ -260,5 +270,4 @@ void destroyHeadQueues(headQueue** head){
 	}
 	free(currentHead);
 	currentHead = NULL;
-
 }

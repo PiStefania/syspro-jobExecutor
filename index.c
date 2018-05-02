@@ -3,6 +3,7 @@
 #include <string.h>
 #include "index.h"
 
+//populate an index
 mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 	mapIndex* index = (mapIndex*) malloc(sizeof(mapIndex));
 	index->documents = (char**)malloc(lines*sizeof(char*));
@@ -41,6 +42,7 @@ mapIndex* populateIndex(int lines,FILE *fp,char* fileName){
 	return index;
 }
 
+//print index
 void printMapIndex(mapIndex* index,int noElems){
 	printf("Printing Map Index\n");
 	for(int i=0; i < noElems; i++){
@@ -48,6 +50,7 @@ void printMapIndex(mapIndex* index,int noElems){
 	}
 }
 
+//destroy index
 void destroyMapIndex(mapIndex* index,int noElems){
 	for(int i=0;i<noElems;i++){
 		if(index->documents[i]!=NULL){

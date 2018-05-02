@@ -64,6 +64,7 @@ minCountInfo* searchPostListMin(postingListsHead* list){
 	return info;
 }
 
+//destroys info of mincount
 void destroyMinCountInfo(minCountInfo* info){
 	free(info->fileName);
 	info->fileName = NULL;

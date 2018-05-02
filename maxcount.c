@@ -63,6 +63,7 @@ maxCountInfo* searchPostListMax(postingListsHead* list){
 	return info;
 }
 
+//find lists max count for mincount's default value
 int maxCount(postingListsHead* list){
 	postingLists* tempNode = list->firstNode;
 	int maxCount = 0;
@@ -76,6 +77,7 @@ int maxCount(postingListsHead* list){
 	return maxCount;
 }
 
+//destroys info of maxcount
 void destroyMaxCountInfo(maxCountInfo* info){
 	free(info->fileName);
 	info->fileName = NULL;

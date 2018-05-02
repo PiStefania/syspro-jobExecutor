@@ -153,6 +153,7 @@ int main (int argc,char* argv[]){
 				
 				deleteFIFOS(w);
 			}else{
+				//get pos in order to open specific file
 				int pos = returnPosWorker(w,getpid(),workers);
 
 				int logfd = createOpenLog(getpid());

@@ -15,7 +15,7 @@
 
 #define PERMS 0777
 
-
+//return number of paths for each worker, else workers = paths
 int returnNumPaths(int *w,int noPaths){
 	int numPaths = 0;
 	if(*w == noPaths){
@@ -31,6 +31,7 @@ int returnNumPaths(int *w,int noPaths){
 	return numPaths;
 }
 
+//populate indexesArray for each worker,for each file
 indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArray* indexesArr){
 	if(indexesArr->indexes == NULL){
 		indexesArr->indexes = malloc(noFiles*sizeof(mapIndex*));
@@ -59,12 +60,14 @@ indexesArray* populateIndexes(char** fileNames,char* path,int noFiles,indexesArr
 	return indexesArr;
 }
 
+//populate trie of worker with all indexes
 void populateTrieWorker(rootNode *root,indexesArray* indexesArr){
 	for(int i=0;i<indexesArr->length;i++){
 		populateTrie(root,indexesArr->indexes[i],indexesArr->indexes[i]->noDocs);
 	}
 }
 
+//destroy all indexes
 void destroyIndexes(indexesArray* indexesArr){
 	for(int i=0;i<indexesArr->length;i++){
 		destroyMapIndex(indexesArr->indexes[i],indexesArr->indexes[i]->noDocs);
@@ -75,6 +78,7 @@ void destroyIndexes(indexesArray* indexesArr){
 	indexesArr = NULL;
 }
 
+//create FIFOS for all workers
 void createFIFOS(int w){
 	for(int i=0;i<w;i++){
 		int numberLength;
@@ -102,6 +106,8 @@ void createFIFOS(int w){
 		FIFO2 = NULL;
 	}
 }
+
+//open FIFOS of parent
 void parentFIFOS(int w,char* line){
 	int* readfds = malloc(w*sizeof(int));
 	int* writefds = malloc(w*sizeof(int));
@@ -148,6 +154,7 @@ void parentFIFOS(int w,char* line){
 	writefds = NULL;
 }
 
+//open FIFOS of child
 int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,int logfd){	
 
 	int numberLength;
@@ -186,6 +193,7 @@ int childFIFOS(int worker,indexesArray* indexesArr,rootNode* root,int logfd){
 	return ret;
 }
 
+//delete FIFOS
 void deleteFIFOS(int w){
 	for(int i=0;i<w;i++){
 		int numberLength;
