@@ -1,0 +1,20 @@
+#!/bin/bash
+
+x=0
+arr=()
+for entry in "../log"/*
+do
+	while read line
+	do
+	var1=$(echo $line |cut -d':' -f4)
+	if [ "$var1" = " search " ]; then
+		var2=$(echo $line |cut -d':' -f5)
+		if [[ " ${arr[*]} " != *" $var2 "* ]]; then
+			arr=("$var2" "${arr[@]}")
+			x=$((x + 1))
+		fi
+	fi
+	done < "$entry"
+done
+
+echo "Total number of keywords searched: $x"  
