@@ -1,26 +1,44 @@
 #!/bin/bash
 
+arr=()
+arr1=()
 for entry in "../log"/*
 do
 	while read line
 	do
 	var1=$(echo $line |cut -d':' -f4)
 	if [ "$var1" = " search " ]; then
-		var3=0
 		var2=$(echo $line |cut -d':' -f5)
 		if [[ " ${arr[*]} " != *" $var2 "* ]]; then
 			arr=("$var2" "${arr[@]}")
-		else
-			
 		fi
+		var3=0
 		IFS=':' read -r -a ADDR <<< "$line"
 		for i in "${ADDR[@]}"; do
 			var3=$((var3+1))
 		done
 		var3=$((var3-5))
-		echo "$var3"
+		if (("$var3" == 0)); then
+			var3=$((var3+1))
+		fi
+		START=0
+		END=$var3
+		for (( c=$START; c<$END; c++ ))
+		do
+        	arr1=("$var2" "${arr1[@]}")
+		done
 	fi
 	done < "$entry"
 done
 
-echo "Keyword most frequently found: $x"  
+max=0
+var4=0
+for word in ${arr[*]}; do
+	var4=$(grep -o $word <<< ${arr1[*]} | wc -l)
+	if (("$max" < "$var4")); then
+		max=$var4
+		str="$word"
+	fi
+done
+
+echo "Keyword most frequently found: $str [totalNumFilesFound: $max]"  
